@@ -1,0 +1,430 @@
+local _0x0F = function(_0x10)
+	local _0x11
+	local _0x12 = pcall(function()
+		_0x11 = game:GetService(_0x10)
+	end)
+
+	if _0x12 and _0x11 then
+		return _0x11
+	end
+
+	local _0x13
+	local _0x14 = pcall(function()
+		_0x13 = game[_0x10]
+	end)
+
+	if _0x14 and _0x13 then
+		return _0x13
+	end
+
+	local _0x15
+	local _0x16 = pcall(function()
+		_0x15 = game:FindFirstChild(_0x10)
+	end)
+
+	if _0x16 and _0x15 then
+		return _0x15
+	end
+
+	return nil
+end
+
+local _0x1 = _0x0F("ContentProvider")
+local _0x2 = _0x0F("RunService")
+local _0x3 = _0x0F("Debris")
+
+local _0x4 = Random.new()
+
+local _0x5 = function(_0x6)
+	return string.format("%s_%08X", _0x6, _0x4:NextInteger(0, 0xFFFFFFFF))
+end
+
+local _0x7 = {
+	{
+		_0x8 = "sprite_shit.png",
+		_0x9 = 24,
+		_0xA = 6,
+		_0xB = 4,
+		_0xC = 12,
+		_0xD = 1938,
+		_0xE = 960,
+		_0xF = true,
+		_0x10 = true,
+	},
+	{
+		_0x8 = "sprite_shitv2.png",
+		_0x9 = 24,
+		_0xA = 6,
+		_0xB = 4,
+		_0xC = 12,
+		_0xD = 1242,
+		_0xE = 792,
+		_0xF = true,
+		_0x10 = false,
+	},
+	{
+		_0x8 = "sprite_shitv3.png",
+		_0x9 = 24,
+		_0xA = 6,
+		_0xB = 4,
+		_0xC = 24,
+		_0xD = 1440,
+		_0xE = 960,
+		_0xF = true,
+		_0x10 = false,
+	},
+	{
+		_0x8 = "sprite_shitv4.png",
+		_0x9 = 24,
+		_0xA = 6,
+		_0xB = 4,
+		_0xC = 24,
+		_0xD = 972,
+		_0xE = 856,
+		_0xF = true,
+		_0x10 = false,
+	},
+	{
+		_0x8 = "sprite_shitv5.png",
+		_0x9 = 72,
+		_0xA = 6,
+		_0xB = 12,
+		_0xC = 24,
+		_0xD = 1152,
+		_0xE = 2304,
+		_0xF = false,
+		_0x10 = false,
+	},
+}
+
+local _0x11 = "peopleonjapanwhentheirphonesdie.mp3"
+local _0x12 = "unxhub"
+local _0x13 = _0x12 .. "/cache"
+local _0x14 = _0x13 .. "/last_choice.txt"
+local _0x15 = "https://random.getunx.cc/Assets/@aprilfools/"
+
+local _0x16 = function()
+	return request or http_request or (fluxus and fluxus.request)
+end
+
+local _0x17 = function(_0x18)
+	local _0x19 = _0x16()
+	if not _0x19 then
+		return false
+	end
+
+	local _0x1A = _0x15 .. _0x18
+	local _0x1B
+	local _0x1C = pcall(function()
+		_0x1B = _0x19({
+			Url = _0x1A,
+			Method = "GET",
+		})
+	end)
+
+	if not _0x1C or not _0x1B then
+		return false
+	end
+
+	local _0x1D = _0x1B.Success
+	local _0x1E = _0x1B.StatusCode
+	local _0x1F = _0x1B.Body
+
+	if (not _0x1D) and _0x1E ~= 200 then
+		return false
+	end
+
+	if type(_0x1F) ~= "string" or #_0x1F == 0 then
+		return false
+	end
+
+	if makefolder and isfolder and not isfolder(_0x12) then
+		pcall(function()
+			makefolder(_0x12)
+		end)
+	end
+
+	if makefolder and isfolder and not isfolder(_0x13) then
+		pcall(function()
+			makefolder(_0x13)
+		end)
+	end
+
+	if not writefile then
+		return false
+	end
+
+	local _0x20 = _0x13 .. "/" .. _0x18
+	local _0x21 = pcall(function()
+		writefile(_0x20, _0x1F)
+	end)
+
+	if not _0x21 then
+		return false
+	end
+
+	return true
+end
+
+local _0x22 = function()
+	if not isfile then
+		return false
+	end
+
+	if makefolder and isfolder and not isfolder(_0x12) then
+		pcall(function()
+			makefolder(_0x12)
+		end)
+	end
+
+	if makefolder and isfolder and not isfolder(_0x13) then
+		pcall(function()
+			makefolder(_0x13)
+		end)
+	end
+
+	local _0x23 = {}
+	for _0x24 = 1, #_0x7 do
+		table.insert(_0x23, _0x7[_0x24]._0x8)
+	end
+	table.insert(_0x23, _0x11)
+
+	local _0x25 = {}
+	for _0x26 = 1, #_0x23 do
+		local _0x27 = _0x13 .. "/" .. _0x23[_0x26]
+		if not isfile(_0x27) then
+			table.insert(_0x25, _0x23[_0x26])
+		end
+	end
+
+	if #_0x25 == 0 then
+		return true
+	end
+
+	local _0x28 = {}
+	local _0x29 = 0
+
+	for _0x2A = 1, #_0x25 do
+		local _0x2B = _0x25[_0x2A]
+		task.spawn(function()
+			local _0x2C = _0x17(_0x2B)
+			_0x28[_0x2B] = _0x2C
+			_0x29 += 1
+		end)
+	end
+
+	while _0x29 < #_0x25 do
+		task.wait()
+	end
+
+	for _0x2D = 1, #_0x25 do
+		local _0x2E = _0x25[_0x2D]
+		if not _0x28[_0x2E] then
+			return false
+		end
+	end
+
+	for _0x2F = 1, #_0x23 do
+		local _0x30 = _0x13 .. "/" .. _0x23[_0x2F]
+		if not isfile(_0x30) then
+			return false
+		end
+	end
+
+	return true
+end
+
+local _0x31 = _0x22()
+if not _0x31 then
+	return
+end
+
+local _0x32 = #_0x7
+local _0x33 = nil
+
+if readfile and isfile and isfile(_0x14) then
+	local _0x34 = pcall(function()
+		_0x33 = readfile(_0x14)
+	end)
+	if not _0x34 then
+		_0x33 = nil
+	end
+end
+
+local _0x35 = {}
+for _0x36 = 1, #_0x7 do
+	local _0x37 = _0x7[_0x36]._0x8
+	if _0x37 ~= _0x33 then
+		table.insert(_0x35, _0x7[_0x36])
+	end
+end
+
+if #_0x35 == 0 then
+	_0x35 = _0x7
+end
+
+local _0x38 = _0x35[_0x4:NextInteger(1, #_0x35)]
+
+if writefile then
+	pcall(function()
+		writefile(_0x14, _0x38._0x8)
+	end)
+end
+
+local _0x39 = _0x13 .. "/" .. _0x38._0x8
+local _0x3A = _0x13 .. "/" .. _0x11
+
+local _0x3B = getcustomasset
+if not _0x3B then
+	return
+end
+
+local _0x3C = (gethui and gethui()) or _0x0F("CoreGui")
+if not _0x3C then
+	return
+end
+
+if not _0x2 then
+	return
+end
+
+local _0x3D
+local _0x3E
+
+local _0x3F = pcall(function()
+	_0x3D = _0x3B(_0x39)
+	_0x3E = _0x3B(_0x3A)
+end)
+
+if not _0x3F or not _0x3D or not _0x3E then
+	return
+end
+
+if _0x1 then
+	pcall(function()
+		_0x1:PreloadAsync({ _0x3D, _0x3E })
+	end)
+end
+
+local _0x40 = math.floor(_0x38._0xD / _0x38._0xA + 0.5)
+local _0x41 = math.floor(_0x38._0xE / _0x38._0xB + 0.5)
+local _0x42 = 1 / _0x38._0xC
+
+local _0x43 = Instance.new("ScreenGui")
+_0x43.Name = _0x5("SpriteViewer")
+_0x43.ResetOnSpawn = false
+_0x43.IgnoreGuiInset = true
+_0x43.DisplayOrder = 2147483647
+_0x43.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+_0x43.Parent = _0x3C
+
+local _0x44 = Instance.new("ImageLabel")
+_0x44.Name = _0x5("Image")
+_0x44.Size = UDim2.fromScale(1, 1)
+_0x44.Position = UDim2.fromScale(0, 0)
+_0x44.AnchorPoint = Vector2.new(0, 0)
+_0x44.BackgroundTransparency = 1
+_0x44.BorderSizePixel = 0
+_0x44.ZIndex = 2147483647
+_0x44.Image = _0x3D
+_0x44.ImageRectSize = Vector2.new(_0x40, _0x41)
+_0x44.ScaleType = Enum.ScaleType.Stretch
+_0x44.Parent = _0x43
+
+local _0x45 = Instance.new("Sound")
+_0x45.Name = _0x5("Audio")
+_0x45.SoundId = _0x3E
+_0x45.Volume = 1
+_0x45.Looped = false
+_0x45.Parent = _0x43
+
+if _0x3 then
+	pcall(function()
+		_0x3:AddItem(_0x45, 15)
+	end)
+end
+
+local _0x46 = _0x38._0xF and (_0x38._0x9 - 1) or 0
+local _0x47 = 0
+local _0x48 = false
+
+local _0x49
+local _0x4A
+
+local _0x4B = function(_0x4C)
+	local _0x4D = _0x4C % _0x38._0xA
+	local _0x4E = math.floor(_0x4C / _0x38._0xA)
+	_0x44.ImageRectOffset = Vector2.new(_0x4D * _0x40, _0x4E * _0x41)
+end
+
+local _0x4F = function()
+	if _0x48 then
+		return
+	end
+	_0x48 = true
+
+	if _0x49 then
+		_0x49:Disconnect()
+		_0x49 = nil
+	end
+
+	if _0x4A then
+		_0x4A:Disconnect()
+		_0x4A = nil
+	end
+
+	if _0x45 then
+		pcall(function()
+			_0x45:Stop()
+		end)
+	end
+
+	if _0x43 then
+		_0x43:Destroy()
+		_0x43 = nil
+	end
+end
+
+_0x4B(_0x46)
+
+_0x4A = _0x45.Ended:Connect(function()
+	_0x4F()
+end)
+
+local _0x50 = pcall(function()
+	_0x45:Play()
+end)
+
+if not _0x50 then
+	task.delay(3, function()
+		_0x4F()
+	end)
+end
+
+_0x49 = (_0x38._0x10 and _0x2.Heartbeat or _0x2.RenderStepped):Connect(function(_0x51)
+	if _0x48 or not _0x43 or not _0x43.Parent then
+		_0x4F()
+		return
+	end
+
+	_0x47 += _0x51
+
+	while _0x47 >= _0x42 do
+		_0x47 -= _0x42
+		_0x4B(_0x46)
+
+		if _0x38._0xF then
+			_0x46 -= 1
+			if _0x46 < 0 then
+				_0x46 = _0x38._0x9 - 1
+			end
+		else
+			_0x46 += 1
+			if _0x46 >= _0x38._0x9 then
+				_0x46 = 0
+			end
+		end
+	end
+end)
+
+warn'nil'

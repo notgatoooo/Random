@@ -1,0 +1,930 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+local player = Players.LocalPlayer
+
+task.spawn(function()
+    player.SimulationRadius = 99999
+    player.MaximumSimulationRadius = 99999
+    pcall(function() setsimulationradius(99999) end)
+    game:GetService("RunService").Heartbeat:Connect(function()
+        player.SimulationRadius = 99999
+        player.MaximumSimulationRadius = 99999
+    end)
+end)
+
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+local Window = Library:CreateWindow({
+    Title = "urban1's universal GUI | Weld abuse",
+    Footer = "v 0.2.1 | by urban1 AKA pwnmaster99",
+    Icon = 0,
+    NotifySide = "Right",
+    ShowCustomCursor = true,
+})
+
+local Tabs = {
+    Main = Window:AddTab("Main", "layout-dashboard"),
+    Pranks = Window:AddTab("Pranks & Fling", "swords"),
+    Misc = Window:AddTab("Misc / Settings", "info")
+}
+
+local function NotifyStatus(text, duration)
+    Library:Notify({
+        Title = "Status",
+        Description = text,
+        Time = duration or 2
+    })
+end
+
+local TargetGroup = Tabs.Main:AddLeftGroupbox("Targeting & Setup", "crosshair")
+local ControlGroup = Tabs.Main:AddLeftGroupbox("Control & Move", "move")
+local WeldGroup = Tabs.Main:AddRightGroupbox("Weld Interactions", "link")
+
+local PrankGroup = Tabs.Pranks:AddLeftGroupbox("Pranks", "ghost")
+local FlingGroup = Tabs.Pranks:AddRightGroupbox("Fling Actions", "hurricane")
+
+local CreditsGroup = Tabs.Misc:AddLeftGroupbox("Credits & Info", "book")
+local SettingsGroup = Tabs.Misc:AddRightGroupbox("UI Settings", "settings")
+
+TargetGroup:AddDropdown("TargetName", {
+    SpecialType = "Player",
+    ExcludeLocalPlayer = true,
+    Text = "Target Player",
+    Tooltip = "Select a player to target"
+})
+
+TargetGroup:AddInput("SpeedInput", {
+    Default = "",
+    Numeric = false,
+    Finished = false,
+    Text = "Speed",
+    Placeholder = "Speed val...",
+})
+
+local function GetTarget()
+    local targetOption = Options and Options.TargetName
+    if not targetOption then return nil end
+    
+    local targetVal = targetOption.Value
+    if not targetVal then return nil end
+
+    if type(targetVal) == "table" then
+        for k, v in pairs(targetVal) do
+            if v then 
+                targetVal = k 
+                break 
+            end
+        end
+    end
+
+    if type(targetVal) == "string" and targetVal ~= "" then
+        local extractedName = string.match(targetVal, "%(@([^%)]+)%)")
+        if extractedName then
+            targetVal = extractedName
+        end
+
+        local targetPlayer = Players:FindFirstChild(targetVal)
+        if targetPlayer then return targetPlayer end
+
+        local lowerName = string.lower(targetVal)
+        for _, p in ipairs(Players:GetPlayers()) do
+            if string.lower(p.Name) == lowerName or string.lower(p.DisplayName) == lowerName then
+                return p
+            end
+        end
+    elseif typeof(targetVal) == "Instance" and targetVal:IsA("Player") then
+        return targetVal
+    end
+
+    return nil
+end
+
+do
+    local selecting = false
+    local connection
+
+    local function startSelecting()
+        if selecting then return end
+        selecting = true
+        NotifyStatus("Selecting... Click or press E on a player.", 3)
+
+        connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local mouse = player:GetMouse()
+                local target = mouse.Target
+                if target then
+                    local character = target:FindFirstAncestorWhichIsA("Model")
+                    if character then
+                        local humanoid = character:FindFirstChild("Humanoid")
+                        if humanoid then
+                            local targetPlayer = Players:GetPlayerFromCharacter(character)
+                            if targetPlayer and targetPlayer ~= player then
+                                Options.TargetName:SetValue(targetPlayer.Name)
+                                NotifyStatus("Target Set to: " .. targetPlayer.Name, 2)
+                                connection:Disconnect()
+                                selecting = false
+                                return
+                            end
+                        end
+                    end
+                end
+                NotifyStatus("No one Found!", 2)
+                connection:Disconnect()
+                selecting = false
+            end
+        end)
+
+        task.delay(10, function()
+            if selecting then
+                connection:Disconnect()
+                selecting = false
+                NotifyStatus("Selection timed out.", 2)
+            end
+        end)
+    end
+
+    TargetGroup:AddButton({
+        Text = "(E) Select Player...",
+        Func = startSelecting
+    })
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.E then
+            startSelecting()
+        end
+    end)
+end
+
+do
+    local TIME = 0.25
+    local PO = Vector3.new(0, -3, 0)
+    local RO = CFrame.Angles(math.rad(90), 0, math.rad(-69))
+    local TP, con, savedpos, character, humanoid, root
+    local db, isOn = false, false
+
+    local function updateLocalCharacter(newChar)
+        character = newChar
+        humanoid = newChar:WaitForChild("Humanoid")
+        root = newChar:WaitForChild("HumanoidRootPart")
+    end
+    if player.Character then updateLocalCharacter(player.Character) end
+
+    local function Stop()
+        if con then con:Disconnect() con = nil end
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if savedpos and root and root.Parent then
+            root.CFrame = savedpos
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end
+        savedpos = nil
+    end
+
+    local function Start()
+        if db then return end
+        db = true
+        if con then con:Disconnect() con = nil end
+        TP = GetTarget()
+        if not TP then
+            NotifyStatus("Target not found!")
+            db = false; isOn = false
+            return
+        end
+        savedpos = root.CFrame
+        local tChar = TP.Character
+        local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+
+        con = RunService.Heartbeat:Connect(function()
+            if not root or not root.Parent or humanoid.Health <= 0 then
+                pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+                if con then con:Disconnect() end
+                return
+            end
+            if not tRoot or not tRoot:IsDescendantOf(workspace) then
+                tChar = TP.Character
+                tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart") or (tChar and tChar:WaitForChild("HumanoidRootPart", 0.2))
+                if not tRoot then return end
+            end
+            pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", tRoot) end)
+            root.CFrame = tRoot.CFrame * CFrame.new(PO) * RO
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end)
+
+        task.delay(TIME, function()
+            if isOn then
+                isOn = false
+                Stop()
+            end
+        end)
+
+        TP.CharacterAdded:Connect(function(newChar)
+            tChar = newChar
+            tRoot = newChar:WaitForChild("HumanoidRootPart")
+        end)
+        db = false
+    end
+
+    WeldGroup:AddButton({
+        Text = "ForceJump",
+        Func = function()
+            if db then return end
+            isOn = not isOn
+            if isOn then Start() else Stop() end
+        end
+    })
+
+    player.CharacterAdded:Connect(function(newChar)
+        updateLocalCharacter(newChar)
+        if isOn then
+            db = true; task.wait(0.5); db = false
+            if isOn then Start() end
+        end
+    end)
+    player.CharacterRemoving:Connect(function()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if con then con:Disconnect() end
+    end)
+end
+
+local function CreateWeldToggle(Name, DisplayName, Group, poVector, roCFrame, customExtras)
+    local PO = poVector
+    local RO = roCFrame
+    local TP, con, savedpos, character, humanoid, root
+    local db, isOn = false, false
+
+    local function updateLocalCharacter(newChar)
+        character = newChar
+        humanoid = newChar:WaitForChild("Humanoid")
+        root = newChar:WaitForChild("HumanoidRootPart")
+    end
+    if player.Character then updateLocalCharacter(player.Character) end
+
+    local function Stop()
+        if con then con:Disconnect() con = nil end
+        if customExtras and customExtras.stop then customExtras.stop() end
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if savedpos and root and root.Parent then
+            root.CFrame = savedpos
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end
+        savedpos = nil
+    end
+
+    local function Start()
+        if db then return end
+        if con then con:Disconnect() con = nil end
+        TP = GetTarget()
+        if not TP then 
+            NotifyStatus("Target not found!")
+            Toggles[Name]:SetValue(false)
+            return 
+        end
+        savedpos = root.CFrame
+        local tChar = TP.Character
+        local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+        
+        if customExtras and customExtras.start then customExtras.start() end
+
+        con = RunService.Heartbeat:Connect(function()
+            if not root or not root.Parent or humanoid.Health <= 0 then
+                pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+                if con then con:Disconnect() end
+                return
+            end
+            if not tRoot or not tRoot:IsDescendantOf(workspace) then
+                tChar = TP.Character
+                tRoot = tChar and tChar:WaitForChild("HumanoidRootPart", 0.5)
+                if not tRoot then return end
+            end
+            pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", tRoot) end)
+            
+            if customExtras and customExtras.dynamicOffset then
+                PO, RO = customExtras.dynamicOffset()
+            end
+
+            root.CFrame = tRoot.CFrame * CFrame.new(PO) * RO
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+            
+            if customExtras and customExtras.heartbeat then customExtras.heartbeat(humanoid) end
+        end)
+
+        TP.CharacterAdded:Connect(function(newChar)
+            tChar = newChar
+            tRoot = newChar:WaitForChild("HumanoidRootPart")
+        end)
+    end
+
+    Group:AddToggle(Name, {
+        Text = DisplayName,
+        Callback = function(Value)
+            if db then return end
+            isOn = Value
+            if isOn then Start() else Stop() end
+        end
+    })
+
+    player.CharacterAdded:Connect(function(newChar)
+        updateLocalCharacter(newChar)
+        if isOn then
+            db = true; task.wait(0.5); db = false
+            if isOn then Start() end
+        end
+    end)
+    player.CharacterRemoving:Connect(function()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if con then con:Disconnect() end
+        if customExtras and customExtras.cleanup then customExtras.cleanup() end
+    end)
+end
+
+CreateWeldToggle("NoJump", "NoJump", WeldGroup, Vector3.new(0, 3.5, 0), CFrame.Angles(math.rad(-90), 0, 0))
+CreateWeldToggle("Elevator", "Elevator", WeldGroup, Vector3.new(0, -3, 0), CFrame.Angles(math.rad(-90), 0, math.rad(3.34)))
+CreateWeldToggle("InfJump", "InfJump", WeldGroup, Vector3.new(0, -5.75, 0), CFrame.Angles(0, 0, 0))
+CreateWeldToggle("MagicCarpet", "Magic Carpet", WeldGroup, Vector3.new(0, -3.6, 0), CFrame.Angles(math.rad(-90), 0, 0))
+
+CreateWeldToggle("HeadSit", "HeadSit", WeldGroup, Vector3.new(0, 3, 0.9), CFrame.Angles(0, 0, 0), {
+    heartbeat = function(humanoid) humanoid.Sit = true end,
+    stop = function() if player.Character and player.Character:FindFirstChild("Humanoid") then player.Character.Humanoid.Sit = false end end
+})
+
+CreateWeldToggle("PlatformFly", "Platform Fly", WeldGroup, Vector3.new(0, -4, 0), CFrame.Angles(math.rad(-90), 0, 0))
+
+do
+    local animTrack1, animTrack2, currentAnim, animLoop = nil, nil, 1, nil
+    local function PlayNextAnimation(humanoid)
+        if not humanoid then return end
+        currentAnim = (currentAnim == 1) and 2 or 1
+        if currentAnim == 1 then
+            if animTrack2 then animTrack2:Stop() end
+            if not animTrack1 then
+                local anim1 = Instance.new("Animation")
+                anim1.AnimationId = "rbxassetid://215262147"
+                animTrack1 = humanoid:LoadAnimation(anim1)
+            end
+            animTrack1:Play()
+        else
+            if animTrack1 then animTrack1:Stop() end
+            if not animTrack2 then
+                local anim2 = Instance.new("Animation")
+                anim2.AnimationId = "rbxassetid://185299570"
+                animTrack2 = humanoid:LoadAnimation(anim2)
+            end
+            animTrack2:Play()
+        end
+    end
+    local function StartAnimationLoop(humanoid)
+        PlayNextAnimation(humanoid)
+        animLoop = task.delay(0.5, function() StartAnimationLoop(humanoid) end)
+    end
+    local function StopAnimations()
+        if animLoop then task.cancel(animLoop) animLoop = nil end
+        if animTrack1 then animTrack1:Stop() animTrack1 = nil end
+        if animTrack2 then animTrack2:Stop() animTrack2 = nil end
+    end
+
+    CreateWeldToggle("Bang", "Bang", WeldGroup, Vector3.new(0, 0, 1.1), CFrame.Angles(0, 0, 0), {
+        start = function() 
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                StartAnimationLoop(player.Character.Humanoid)
+            end
+        end,
+        stop = function() StopAnimations() end,
+        cleanup = function() StopAnimations() end
+    })
+end
+
+do
+    CreateWeldToggle("Annoy", "Annoy", WeldGroup, Vector3.new(0,0,0), CFrame.Angles(0,0,0), {
+        dynamicOffset = function()
+            local dir = Vector3.new(
+                math.random(-1000, 1000) / 100,
+                math.random(-1000, 1000) / 100,
+                math.random(-1000, 1000) / 100
+            ).Unit
+            local dist = math.random(50, 100) / 100
+            return dir * dist, CFrame.Angles(0,0,0)
+        end
+    })
+end
+
+do
+    local function gzoffset(speed)
+        speed = tonumber(speed)
+        if not speed then return nil end
+        if speed <= 1 then return 1.0
+        elseif speed >= 10 then return 0.35
+        else
+            local t = (speed - 1) / (10 - 1)
+            t = 1 - (1 - t) * (1 - t)
+            return 1.0 - (1.0 - 0.35) * t
+        end
+    end
+
+    CreateWeldToggle("SpeedBoost", "SpeedBoost", ControlGroup, Vector3.new(0, 0.7, 0.5), CFrame.Angles(0, 0, 0), {
+        start = function()
+            local speedValue = Options.SpeedInput.Value
+            local zOffset = gzoffset(speedValue)
+            if not zOffset then
+                NotifyStatus("Speed must be a number!")
+                Toggles.SpeedBoost:SetValue(false)
+            end
+        end,
+        dynamicOffset = function()
+            local zOffset = gzoffset(Options.SpeedInput.Value) or 0.5
+            return Vector3.new(0, 0.7, zOffset), CFrame.Angles(0,0,0)
+        end
+    })
+end
+
+CreateWeldToggle("InvertMovement", "Invert Movement", ControlGroup, Vector3.new(0, 0.7, -0.8), CFrame.Angles(0, 0, 0))
+
+do
+    local DefaultOffset = Vector3.new(0, -20, 0)
+    local Offset_W = Vector3.new(0, 0.7, 0.5)
+    local Offset_A = Vector3.new(1.7, 0.7, 0)
+    local Offset_S = Vector3.new(0, 0.7, -0.5)
+    local Offset_D = Vector3.new(-1.7, 0.7, 0)
+    local Offset_Space = Vector3.new(0, -3, 0)
+    
+    local held = {}
+    local inputBeganConn, inputEndedConn
+
+    CreateWeldToggle("ControlPlayer", "Control Player (PC)", ControlGroup, DefaultOffset, CFrame.Angles(0,0,0), {
+        start = function()
+            local camera = workspace.CurrentCamera
+            local tp = GetTarget()
+            if tp and tp.Character and tp.Character:FindFirstChild("Humanoid") then
+                camera.CameraSubject = tp.Character.Humanoid
+            end
+            held = {}
+            inputBeganConn = UserInputService.InputBegan:Connect(function(input, gp)
+                if not gp and input.UserInputType == Enum.UserInputType.Keyboard then
+                    held[input.KeyCode] = true
+                end
+            end)
+            inputEndedConn = UserInputService.InputEnded:Connect(function(input, gp)
+                if not gp and input.UserInputType == Enum.UserInputType.Keyboard then
+                    held[input.KeyCode] = nil
+                end
+            end)
+        end,
+        stop = function()
+            if inputBeganConn then inputBeganConn:Disconnect() inputBeganConn = nil end
+            if inputEndedConn then inputEndedConn:Disconnect() inputEndedConn = nil end
+            local camera = workspace.CurrentCamera
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                camera.CameraSubject = player.Character.Humanoid
+            end
+            held = {}
+        end,
+        cleanup = function()
+            if inputBeganConn then inputBeganConn:Disconnect() inputBeganConn = nil end
+            if inputEndedConn then inputEndedConn:Disconnect() inputEndedConn = nil end
+        end,
+        dynamicOffset = function()
+            local currentPO = DefaultOffset
+            local currentRO = CFrame.Angles(0, 0, 0)
+            if held[Enum.KeyCode.W] then currentPO = Offset_W
+            elseif held[Enum.KeyCode.A] then currentPO = Offset_A
+            elseif held[Enum.KeyCode.S] then currentPO = Offset_S
+            elseif held[Enum.KeyCode.D] then currentPO = Offset_D
+            elseif held[Enum.KeyCode.Space] then currentPO = Offset_Space end
+            
+            if held[Enum.KeyCode.Space] then currentRO = CFrame.Angles(math.rad(-90), 0, 0) end
+            return currentPO, currentRO
+        end
+    })
+end
+
+local function CreateActionFeature(Name, Group, poVector, roCFrame, duration)
+    local TIME = duration
+    local PO = poVector
+    local RO = roCFrame
+    local TP, con, savedpos, character, humanoid, root
+    local db, isOn = false, false
+
+    local function updateLocalCharacter(newChar)
+        character = newChar
+        humanoid = newChar:WaitForChild("Humanoid")
+        root = newChar:WaitForChild("HumanoidRootPart")
+    end
+    if player.Character then updateLocalCharacter(player.Character) end
+
+    local function Stop()
+        if con then con:Disconnect() con = nil end
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if savedpos and root and root.Parent then
+            root.CFrame = savedpos
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end
+        savedpos = nil
+    end
+
+    local function Start()
+        if db then return end
+        db = true
+        if con then con:Disconnect() con = nil end
+        TP = GetTarget()
+        if not TP then
+            NotifyStatus("Target not found!")
+            db = false; isOn = false
+            return
+        end
+        savedpos = root.CFrame
+        local tChar = TP.Character
+        local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+
+        con = RunService.Heartbeat:Connect(function()
+            if not root or not root.Parent or humanoid.Health <= 0 then
+                pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+                if con then con:Disconnect() end
+                return
+            end
+            if not tRoot or not tRoot:IsDescendantOf(workspace) then
+                tChar = TP.Character
+                tRoot = tChar and (tChar:FindFirstChild("HumanoidRootPart") or tChar:WaitForChild("HumanoidRootPart", 0.2))
+                if not tRoot then return end
+            end
+            pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", tRoot) end)
+            root.CFrame = tRoot.CFrame * CFrame.new(PO) * RO
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end)
+
+        task.delay(TIME, function()
+            if isOn then
+                isOn = false
+                Stop()
+            end
+        end)
+
+        TP.CharacterAdded:Connect(function(newChar)
+            tChar = newChar
+            tRoot = newChar:WaitForChild("HumanoidRootPart")
+        end)
+        db = false
+    end
+
+    Group:AddButton({
+        Text = Name,
+        Func = function()
+            if db then return end
+            isOn = not isOn
+            if isOn then Start() else Stop() end
+        end
+    })
+
+    player.CharacterAdded:Connect(function(newChar)
+        updateLocalCharacter(newChar)
+        if isOn then
+            db = true; task.wait(0.5); db = false
+            if isOn then Start() end
+        end
+    end)
+    player.CharacterRemoving:Connect(function()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if con then con:Disconnect() end
+    end)
+end
+
+CreateActionFeature("Rocket", PrankGroup, Vector3.new(0, -3, 0), CFrame.Angles(math.rad(90), 0, math.rad(-69)), 0.55)
+CreateActionFeature("Slam", PrankGroup, Vector3.new(0, 0.35, 0), CFrame.Angles(0, 0, 0), 4)
+CreateActionFeature("Jumpscare (First Person)", PrankGroup, Vector3.new(0, 1.5, -0.8), CFrame.Angles(0, math.rad(180), 0), 2)
+
+do
+    local TIME = 1
+    local PO = Vector3.new(0, 0, 0)
+    local RO = CFrame.Angles(0, 0, 0)
+    local TP, con, savedpos, character, humanoid, root
+    local db, isOn = false, false
+
+    local function updateLocalCharacter(newChar)
+        character = newChar
+        humanoid = newChar:WaitForChild("Humanoid")
+        root = newChar:WaitForChild("HumanoidRootPart")
+    end
+    if player.Character then updateLocalCharacter(player.Character) end
+
+    local function hardStop()
+        if con then con:Disconnect() con = nil end
+        isOn = false
+    end
+
+    local function Stop()
+        hardStop()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if savedpos and root and root.Parent then
+            root.CFrame = savedpos
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end
+        savedpos = nil
+    end
+
+    local function Start()
+        if db then return end
+        db = true
+        if con then con:Disconnect() con = nil end
+        TP = GetTarget()
+        if not TP or not root or not root.Parent or not humanoid or not humanoid.Parent then
+            NotifyStatus("Target not found!")
+            db = false; isOn = false
+            return
+        end
+        savedpos = root.CFrame
+        local tChar = TP.Character
+        local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+        local sessionActive = true
+
+        con = RunService.Heartbeat:Connect(function()
+            if not sessionActive then
+                if con then con:Disconnect() con = nil end
+                return
+            end
+            local localRoot, localHumanoid = root, humanoid
+            if not localRoot or not localRoot.Parent or not localHumanoid or not localHumanoid.Parent or localHumanoid.Health <= 0 then
+                pcall(function() sethiddenproperty(localRoot, "PhysicsRepRootPart", nil) end)
+                sessionActive = false; hardStop()
+                return
+            end
+            if not TP or not TP.Parent then
+                pcall(function() sethiddenproperty(localRoot, "PhysicsRepRootPart", nil) end)
+                sessionActive = false; hardStop()
+                return
+            end
+            if not tRoot or not tRoot:IsDescendantOf(workspace) then
+                tChar = TP.Character
+                tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+                if not tRoot then return end
+            end
+
+            pcall(function() sethiddenproperty(localHumanoid, "MoveDirectionInternal", Vector3.new(0/0, 0/0, 0/0)) end)
+            pcall(function() sethiddenproperty(localRoot, "PhysicsRepRootPart", tRoot) end)
+            
+            localRoot.CFrame = tRoot.CFrame * CFrame.new(PO) * RO
+            localRoot.Velocity = Vector3.new()
+            localRoot.AssemblyLinearVelocity = Vector3.new()
+            localRoot.AssemblyAngularVelocity = Vector3.new()
+            localRoot.RotVelocity = Vector3.new()
+        end)
+
+        task.delay(TIME, function()
+            sessionActive = false
+            if isOn then
+                Stop()
+                isOn = false
+            end
+        end)
+
+        TP.CharacterAdded:Connect(function(newChar)
+            if not sessionActive then return end
+            tChar = newChar
+            tRoot = newChar:WaitForChild("HumanoidRootPart")
+        end)
+        db = false
+    end
+
+    FlingGroup:AddButton({
+        Text = "Fling Target",
+        Func = function()
+            if db then return end
+            isOn = not isOn
+            if isOn then Start() else Stop() end
+        end
+    })
+
+    player.CharacterAdded:Connect(function(newChar)
+        updateLocalCharacter(newChar)
+        if isOn then db = true; task.wait(0.5); db = false; if isOn then Start() end end
+    end)
+    player.CharacterRemoving:Connect(function()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        if con then con:Disconnect() con = nil end
+    end)
+end
+
+local function CreateAllFeature(Name, Group, poVector, roCFrame, stepTime, useMoveDirection)
+    local TPList, doneSet, currentIndex = {}, {}, 1
+    local tChar, tRoot, con, moveDirCon, savedPos
+    local isOn, sessionActive = false, false
+    local character, humanoid, root
+
+    local function updateLocalCharacter(newChar)
+        character = newChar
+        humanoid = newChar:WaitForChild("Humanoid")
+        root = newChar:WaitForChild("HumanoidRootPart")
+    end
+    if player.Character then updateLocalCharacter(player.Character) end
+
+    local function stopMoveDirection()
+        if moveDirCon then moveDirCon:Disconnect() moveDirCon = nil end
+    end
+    
+    local function restorePosition()
+        if savedPos and root and root.Parent then
+            root.CFrame = savedPos
+            root.Velocity = Vector3.new()
+            root.AssemblyLinearVelocity = Vector3.new()
+            root.AssemblyAngularVelocity = Vector3.new()
+            root.RotVelocity = Vector3.new()
+        end
+        savedPos = nil
+    end
+
+    local function hardStop()
+        sessionActive = false
+        if con then con:Disconnect() con = nil end
+        stopMoveDirection()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        restorePosition()
+        isOn = false
+    end
+
+    local function updateTargetCharacter()
+        local tp = TPList[currentIndex]
+        if tp and tp.Parent then
+            tChar = tp.Character
+            tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart") or nil
+        else
+            tChar = nil; tRoot = nil
+        end
+    end
+
+    local function allDone()
+        for _, p in ipairs(TPList) do
+            if not doneSet[p] then return false end
+        end
+        return true
+    end
+
+    local function advanceToNext()
+        local startIdx = currentIndex
+        local count = #TPList
+        for i = 1, count do
+            local idx = (startIdx - 1 + i) % count + 1
+            local p = TPList[idx]
+            if p and p.Parent and not doneSet[p] then
+                local c = p.Character
+                local r = c and c:FindFirstChild("HumanoidRootPart")
+                if c and r and r:IsDescendantOf(workspace) then
+                    currentIndex = idx
+                    tChar = c; tRoot = r
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    local function Start()
+        if con then con:Disconnect() con = nil end
+        stopMoveDirection()
+        TPList, doneSet = {}, {}
+        for _, p in Players:GetPlayers() do
+            if p ~= player then table.insert(TPList, p) end
+        end
+
+        if #TPList == 0 then NotifyStatus("No players found!") return end
+        if root and root.Parent then savedPos = root.CFrame end
+
+        currentIndex = 1
+        sessionActive = true
+        updateTargetCharacter()
+
+        if not tRoot then
+            if not advanceToNext() then
+                NotifyStatus("No players found!")
+                sessionActive = false; savedPos = nil
+                return
+            end
+        end
+
+        local timeOnTarget = tick()
+
+        if useMoveDirection then
+            moveDirCon = RunService.Heartbeat:Connect(function()
+                if not sessionActive then stopMoveDirection() return end
+                if not root or not root.Parent or not humanoid or humanoid.Health <= 0 then stopMoveDirection() return end
+                if not tRoot or not tRoot:IsDescendantOf(workspace) then return end
+                pcall(function() sethiddenproperty(humanoid, "MoveDirectionInternal", Vector3.new(0/0, 0/0, 0/0)) end)
+            end)
+        end
+
+        con = RunService.Heartbeat:Connect(function()
+            if not sessionActive then
+                if con then con:Disconnect() con = nil end
+                return
+            end
+            local lr, lh = root, humanoid
+            if not lr or not lr.Parent or not lh or not lh.Parent or lh.Health <= 0 then
+                pcall(function() sethiddenproperty(lr, "PhysicsRepRootPart", nil) end)
+                hardStop() return
+            end
+            if not tRoot or not tRoot:IsDescendantOf(workspace) then
+                local tp = TPList[currentIndex]
+                if tp and tp.Parent and not doneSet[tp] then updateTargetCharacter() end
+                if not tRoot then
+                    if not advanceToNext() then
+                        if allDone() then hardStop() end
+                    end
+                end
+                return
+            end
+
+            if tick() - timeOnTarget >= stepTime then
+                local tp = TPList[currentIndex]
+                if tp then doneSet[tp] = true end
+                pcall(function() sethiddenproperty(lr, "PhysicsRepRootPart", nil) end)
+                if allDone() then hardStop() return end
+                if not advanceToNext() then return end
+                timeOnTarget = tick()
+            end
+
+            pcall(function() sethiddenproperty(lr, "PhysicsRepRootPart", tRoot) end)
+            lr.CFrame = tRoot.CFrame * CFrame.new(poVector) * roCFrame
+            lr.Velocity = Vector3.new()
+            lr.AssemblyLinearVelocity = Vector3.new()
+            lr.AssemblyAngularVelocity = Vector3.new()
+            lr.RotVelocity = Vector3.new()
+        end)
+    end
+
+    Group:AddButton({
+        Text = Name,
+        Func = function()
+            isOn = not isOn
+            if isOn then Start() else hardStop() end
+        end
+    })
+
+    player.CharacterAdded:Connect(function(newChar)
+        updateLocalCharacter(newChar)
+        if isOn then task.wait(0.5); if isOn then Start() end end
+    end)
+    player.CharacterRemoving:Connect(function()
+        pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end)
+        stopMoveDirection()
+        if con then con:Disconnect() con = nil end
+        sessionActive = false; savedPos = nil
+    end)
+    Players.PlayerAdded:Connect(function(p)
+        if p ~= player and isOn then table.insert(TPList, p) end
+    end)
+    Players.PlayerRemoving:Connect(function(p)
+        if not isOn then return end
+        doneSet[p] = nil
+        for i, tp in ipairs(TPList) do
+            if tp == p then
+                table.remove(TPList, i)
+                if currentIndex > #TPList then currentIndex = 1 end
+                updateTargetCharacter()
+                break
+            end
+        end
+    end)
+    for _, p in Players:GetPlayers() do
+        if p ~= player then
+            p.CharacterAdded:Connect(function()
+                if isOn and p == TPList[currentIndex] then updateTargetCharacter() end
+            end)
+        end
+    end
+end
+
+CreateAllFeature("Jumpscare All", PrankGroup, Vector3.new(0, 1.5, -0.8), CFrame.Angles(0, math.rad(180), 0), 1, false)
+CreateAllFeature("Fling All", FlingGroup, Vector3.new(0, 0, 0), CFrame.Angles(0, 0, 0), 1.5, true)
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetFolder("WeldAbuse")
+SaveManager:BuildConfigSection(Tabs.Misc)
+ThemeManager:ApplyToTab(Tabs.Misc)

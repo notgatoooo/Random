@@ -1,0 +1,2 @@
+-- ts was minified using gato's minifier v2
+local a,b,c,d=odh_shared_plugins.AddSection('Stretched Screen'),false,0.65,workspace.CurrentCamera;game:GetService('RunService').RenderStepped:Connect(function()if b then d.CFrame=d.CFrame*CFrame.new(0,0,0,1,0,0,0,c,0,0,0,1)end end)a:AddToggle('Stretch Screen',function(e)b=e end)a:AddSlider('Stretch Screen Level (LOWER IS STRONGER)',10,100,65,function(f)c=f/100 end)

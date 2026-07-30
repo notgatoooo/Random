@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Character Modifications",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "yes"
+  },
+  {
+    "name": "Fly / VFly",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "yes"
+  },
+  {
+    "name": "Invisible",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "yes"
+  },
+  {
+    "name": "Second Life",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "yes"
+  },
+  {
+    "name": "Miscellaneous Main Features",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "yes"
+  },
+  {
+    "name": "ESPs (Name ESP, Highlight, etc...)",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "yes"
+  },
+  {
+    "name": "Silent Aim",
+    "free": "Worst",
+    "exclusive": "Best",
+    "premium": "Medium"
+  },
+  {
+    "name": "Piercer Bullet",
+    "free": "no",
+    "exclusive": "no",
+    "premium": "yes"
+  },
+  {
+    "name": "Knife Silent Aim",
+    "free": "yes",
+    "exclusive": "yes",
+    "premium": "Best"
+  },
+  {
+    "name": "Fast Slash/Auto Slash",
+    "free": "no",
+    "exclusive": "no",
+    "premium": "yes"
+  },
+  {
+    "name": "Instant Knife Throw",
+    "free": "no",
+    "exclusive": "no",
+    "premium": "yes"
+  },
+  {
+    "name": "Auto Speed Glitch",
+    "free": "no",
+    "exclusive": "yes",
+    "premium": "no"
+  },
+  {
+    "name": "Custom Cursor",
+    "free": "no",
+    "exclusive": "no",
+    "premium": "yes"
+  }
+]

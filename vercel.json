@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/testitandsee",
+      "destination": "https://filho.wtf/Assets/test_it_and_see.mp4",
+      "permanent": true
+    },
+    {
+      "source": "/test_it_and_see",
+      "destination": "https://filho.wtf/Assets/test_it_and_see.mp4",
+      "permanent": true
+    },
+    {
+      "source": "/dice",
+      "destination": "https://filho.wtf/Assets/dice.gif",
+      "permanent": true
+    }
+  ]
+}

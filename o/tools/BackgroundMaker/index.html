@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overdrive Background Maker</title>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    :root{
+      --text:#e9ecff;
+      --muted:#aab2da;
+      --accent:#6ea8fe;
+      --accent2:#7c3aed;
+      --border:rgba(255,255,255,.10);
+      --card:rgba(31,41,55,.5);
+      --selected:#0077FF;
+      --track:rgba(255,255,255,.08);
+      --ok:#34d399;
+      --err:#f87171;
+      --slider-fill: linear-gradient(90deg, #7c3aed, #6ea8fe);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      background-image:url("https://i.pinimg.com/originals/55/01/60/5501609ee45d514d1f2c4a63502045e2.gif");
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-attachment:fixed;
+    }
+    .app{
+      width:min(1100px,100%);
+      display:grid;
+      gap:18px;
+      grid-template-columns:360px 1fr;
+      align-items:start;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      -webkit-backdrop-filter:blur(4px);
+      backdrop-filter:blur(4px);
+      outline:2px solid transparent;
+      transition:transform .12s ease, outline-color .12s ease;
+      cursor:pointer;
+      border-radius:0;
+    }
+    .card.selected{transform:scale(1.03);outline-color:var(--selected)}
+    .controls,.preview{padding:18px;display:grid;gap:14px}
+    h1{font-size:1.45rem}
+    p{color:var(--muted);line-height:1.45;font-size:.95rem}
+    .field{display:grid;gap:6px}
+    label{font-size:.92rem;color:var(--muted)}
+    input[type="file"],input[type="text"],input[type="number"]{
+      width:100%;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      outline:none;
+      border-radius:0;
+    }
+    input[type="file"]::file-selector-button,
+    input[type="file"]::-webkit-file-upload-button{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      padding:8px 12px;
+      margin-right:12px;
+      border-radius:0;
+      cursor:pointer;
+    }
+    input[type="text"]::placeholder,input[type="number"]::placeholder{color:rgba(233,236,255,.42)}
+    input[type="text"]:focus,input[type="number"]:focus,input[type="file"]:focus{
+      border-color:rgba(124,58,237,.95);
+      box-shadow:0 0 0 3px rgba(124,58,237,.18);
+      background:rgba(255,255,255,.06);
+    }
+    .slider-wrap{
+      display:grid;gap:10px;padding:12px 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+    }
+    .slider-row{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      font-size:.88rem;color:var(--muted);
+    }
+    .slider-val{
+      font-size:.88rem;font-weight:700;letter-spacing:.03em;
+      color:var(--accent);min-width:38px;text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
+    input[type="range"]{
+      width:100%;appearance:none;-webkit-appearance:none;
+      height:4px;outline:none;cursor:pointer;border-radius:0;
+      background:rgba(255,255,255,.10);
+      transition:opacity .12s;
+    }
+    input[type="range"]:disabled{opacity:.35;cursor:not-allowed}
+    input[type="range"]::-webkit-slider-runnable-track{
+      height:4px;background:transparent;border-radius:0;
+    }
+    input[type="range"]::-webkit-slider-thumb{
+      -webkit-appearance:none;appearance:none;
+      width:14px;height:14px;margin-top:-5px;
+      background:#ffffff;border:2px solid #7c3aed;border-radius:0;
+      cursor:pointer;
+      box-shadow:0 0 0 0 rgba(124,58,237,0);
+      transition:border-color .15s,box-shadow .15s,transform .12s;
+    }
+    input[type="range"]:not(:disabled):hover::-webkit-slider-thumb{
+      border-color:var(--accent);
+      box-shadow:0 0 0 5px rgba(110,168,254,.18);
+      transform:scale(1.15);
+    }
+    input[type="range"]:not(:disabled):active::-webkit-slider-thumb{
+      transform:scale(0.95);
+    }
+    input[type="range"]::-moz-range-track{
+      height:4px;border-radius:0;background:rgba(255,255,255,.10);
+    }
+    input[type="range"]::-moz-range-progress{
+      height:4px;border-radius:0;
+      background:linear-gradient(90deg,#7c3aed,#6ea8fe);
+    }
+    input[type="range"]::-moz-range-thumb{
+      width:14px;height:14px;border:2px solid #7c3aed;
+      background:#ffffff;border-radius:0;cursor:pointer;
+      transition:border-color .15s,box-shadow .15s;
+    }
+    input[type="range"]:not(:disabled):hover::-moz-range-thumb{
+      border-color:var(--accent);
+      box-shadow:0 0 0 5px rgba(110,168,254,.18);
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    button{
+      -webkit-appearance:none;
+      appearance:none;border:0;padding:11px 18px;color:white;font-weight:700;cursor:pointer;
+      background:linear-gradient(135deg,var(--accent2),var(--accent));
+      font-size:.92rem;border-radius:0;transition:transform .12s ease,filter .12s ease,opacity .12s ease;
+      outline:none;
+    }
+    button:focus{outline:none}
+    button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+    button.secondary{background:rgba(255,255,255,.08);border:1px solid var(--border)}
+    button:disabled,input:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .switch{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;border-radius:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)
+    }
+    .switch span{font-size:.92rem;color:rgba(238,242,255,.84);line-height:1.25}
+    .switch input{width:20px;height:20px;accent-color:var(--accent);border-radius:0}
+    .progress{
+      display:grid;gap:10px;padding:14px;border-radius:0;
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)
+    }
+    .progress-head{
+      display:flex;align-items:baseline;justify-content:space-between;gap:10px
+    }
+    .progress-title{font-size:.95rem;color:var(--text);font-weight:700}
+    .progress-percent{font-size:.9rem;color:var(--muted);white-space:nowrap}
+    .bar{
+      width:100%;height:6px;overflow:hidden;border-radius:0;
+      background:rgba(255,255,255,.06);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      position:relative;
+    }
+    .bar-fill{
+      height:100%;width:0%;border-radius:0;
+      background:linear-gradient(90deg,#7c3aed,#6ea8fe,#34d399);
+      transition:width .15s cubic-bezier(.4,0,.2,1);
+      position:relative;overflow:hidden;
+    }
+    .bar-fill::after{
+      content:'';
+      position:absolute;inset:0;
+      background:linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,.0) 35%,
+        rgba(255,255,255,.55) 50%,
+        rgba(255,255,255,.0) 65%,
+        transparent 100%);
+      transform:translateX(-200%);
+      animation:none;
+    }
+    .bar-fill.active::after{
+      animation:bar-scan 1.1s linear infinite;
+    }
+    .bar-fill.done{
+      background:linear-gradient(90deg,#34d399,#6ea8fe);
+      animation:bar-done-flash .4s ease forwards;
+    }
+    @keyframes bar-scan{
+      0%  { transform:translateX(-200%); }
+      100%{ transform:translateX(300%); }
+    }
+    @keyframes bar-done-flash{
+      0%  { filter:brightness(1); }
+      40% { filter:brightness(1.7); }
+      100%{ filter:brightness(1); }
+    }
+    .progress-text{font-size:.88rem;line-height:1.55;color:rgba(238,242,255,.78);word-break:break-word;min-height:44px}
+    .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .pill{
+      padding:11px 12px;border-radius:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+      color:rgba(238,242,255,.8);font-size:.9rem;line-height:1.35
+    }
+    .pill strong{display:block;color:var(--text);font-size:1rem;margin-bottom:2px}
+    .sheet-box{
+      border-radius:0;overflow:hidden;border:1px solid rgba(255,255,255,.1);
+      background:#090b16;min-height:420px;display:grid;place-items:center
+    }
+    canvas{
+      width:100%;height:auto;display:block;
+      background:
+        linear-gradient(45deg,rgba(255,255,255,.03) 25%,transparent 25%) -20px 0/40px 40px,
+        linear-gradient(-45deg,rgba(255,255,255,.03) 25%,transparent 25%) -20px 0/40px 40px,
+        linear-gradient(45deg,transparent 75%,rgba(255,255,255,.03) 75%) -20px 0/40px 40px,
+        linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.03) 75%) -20px 0/40px 40px,
+        #090b16
+    }
+    .tiny{font-size:.82rem;color:rgba(238,242,255,.6)}
+    .preview{padding:18px}
+    @media (max-width:900px){.app{grid-template-columns:1fr}}
+
+    /*  Safari: background-attachment:fixed broken on iOS  */
+    @supports (-webkit-touch-callout:none){
+      body{background-attachment:scroll}
+    }
+
+    /*  Custom Select  */
+    .custom-select{position:relative;-webkit-user-select:none;user-select:none}
+    .csel-trigger{
+      display:flex;align-items:center;gap:8px;
+      padding:12px;cursor:pointer;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      transition:border-color .15s,box-shadow .15s,background .15s;
+    }
+    .csel-trigger:hover,
+    .custom-select.open .csel-trigger{
+      border-color:rgba(124,58,237,.95);
+      box-shadow:0 0 0 3px rgba(124,58,237,.18);
+      background:rgba(255,255,255,.06);
+    }
+    .csel-name{flex:1;font-size:.92rem}
+    .csel-res{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .csel-arrow{
+      color:var(--muted);font-size:.75rem;
+      display:inline-block;
+      transition:transform .18s ease;
+      will-change:transform;
+    }
+    .custom-select.open .csel-arrow{transform:rotate(180deg)}
+    .csel-dropdown{
+      position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:200;
+      background:#111827;
+      border:1px solid rgba(124,58,237,.55);
+      box-shadow:0 8px 28px rgba(0,0,0,.55);
+      display:none;
+    }
+    .custom-select.open .csel-dropdown{display:block}
+    .csel-option{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding:10px 12px;cursor:pointer;font-size:.92rem;
+      border-left:2px solid transparent;
+      transition:background .1s,border-color .1s;
+    }
+    .csel-option:hover{background:rgba(124,58,237,.14);border-left-color:rgba(124,58,237,.5)}
+    .csel-option.selected{
+      background:rgba(110,168,254,.1);
+      border-left-color:var(--accent);
+      color:var(--accent);
+    }
+    .csel-option .opt-res{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+    .csel-option.selected .opt-res{color:rgba(110,168,254,.65)}
+
+    /*  Custom resolution inputs  */
+    .custom-res-row{display:flex;align-items:center;gap:8px}
+    .custom-res-row input[type="number"]{flex:1;min-width:0;text-align:center}
+    .custom-res-x{color:var(--muted);font-weight:700;font-size:1rem;flex-shrink:0}
+
+    /*  Name required validation  */
+    input.name-required{
+      border-color:var(--err) !important;
+      box-shadow:0 0 0 2px rgba(248,113,113,.18) !important;
+    }
+    .req-star{color:var(--err);margin-left:2px}
+
+    /*  GIF conversion suggestion (shown when frames are being skipped)  */
+    .gif-suggestion{
+      display:none;
+      padding:12px 14px;
+      background:rgba(248,113,113,.10);
+      border:1px solid rgba(248,113,113,.30);
+      border-radius:0;
+    }
+    .gif-suggestion.visible{display:grid;gap:10px}
+    .gif-suggestion-text{
+      font-size:.88rem;line-height:1.4;
+      color:rgba(238,242,255,.92);
+    }
+    #gifConvertBtn{
+      background:linear-gradient(135deg,#f59e0b,#f87171);
+      padding:9px 14px;font-size:.88rem;
+      justify-self:start;
+    }
+    #gifConvertBtn:disabled{cursor:wait}
+  </style>
+</head>
+<body>
+<div class="app">
+  <section class="card controls" id="controlsCard">
+    <h1>Overdrive Background Maker</h1>
+    <p>A well... Background maker for Overdrive H lol :p.</p>
+
+    <div class="field">
+      <label for="mediaInput">Choose GIF or video</label>
+      <input id="mediaInput" type="file" accept="image/gif,video/*">
+    </div>
+
+    <div class="field">
+      <label for="nameInput" id="nameLabel">Name</label>
+      <input id="nameInput" type="text" value="sprite_sheet" placeholder="sprite_sheet">
+    </div>
+
+    <!-- Resolution Preset -->
+    <div class="field">
+      <label>Max Sheet Resolution</label>
+      <div class="custom-select" id="resPreset">
+        <div class="csel-trigger" id="resPresetTrigger" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+          <span class="csel-name" id="resPresetName">Balanced</span>
+          <span class="csel-res"  id="resPresetRes">3560×3560</span>
+          <span class="csel-arrow" aria-hidden="true">▾</span>
+        </div>
+        <div class="csel-dropdown" role="listbox" id="resPresetDropdown">
+          <div class="csel-option" data-value="quality"  data-w="5012" data-h="5012" role="option"><span>Prioritize Quality</span><span class="opt-res">5012×5012</span></div>
+          <div class="csel-option selected" data-value="balanced" data-w="3560" data-h="3560" role="option"><span>Balanced</span><span class="opt-res">3560×3560</span></div>
+          <div class="csel-option" data-value="filesize" data-w="2120" data-h="2120" role="option"><span>Prioritize File Size</span><span class="opt-res">2120×2120</span></div>
+          <div class="csel-option" data-value="custom"   data-w="0"    data-h="0"    role="option"><span>Custom</span><span class="opt-res"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom resolution (shown only when Custom is selected) -->
+    <div class="field" id="customResWrap" style="display:none">
+      <label>Custom Max Size</label>
+      <div class="custom-res-row">
+        <input type="number" id="customResW" min="256" max="5012" value="3560" placeholder="Width">
+        <span class="custom-res-x">×</span>
+        <input type="number" id="customResH" min="256" max="5012" value="3560" placeholder="Height">
+      </div>
+    </div>
+
+    <div class="switch">
+      <span><strong>Auto</strong><br><span class="tiny">Automatically adapts configurations to your video.</span></span>
+      <input id="autoToggle" type="checkbox" checked>
+    </div>
+
+    <div class="slider-wrap">
+      <div class="slider-row">
+        <span>FPS</span>
+        <span id="fpsLabel" class="slider-val">24</span>
+      </div>
+      <input id="fpsSlider" type="range" min="5" max="30" value="24">
+    </div>
+
+    <div class="field">
+      <label for="skipInput">Skips per Frames (SPF)</label>
+      <input id="skipInput" type="number" min="1" step="1" value="1">
+    </div>
+
+    <div class="slider-wrap">
+      <div class="slider-row">
+        <span>Resolution (%)</span>
+        <span id="resLabel" class="slider-val">100%</span>
+      </div>
+      <input id="resSlider" type="range" min="0" max="100" value="100">
+    </div>
+
+    <div class="row">
+      <button id="buildBtn" disabled>Generate ZIP</button>
+      <button id="clearBtn" class="secondary" disabled>Clear</button>
+    </div>
+
+    <div class="progress">
+      <div class="progress-head">
+        <div class="progress-title" id="progressTitle">Waiting...</div>
+        <div class="progress-percent" id="progressPercent">0%</div>
+      </div>
+      <div class="bar"><div class="bar-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">This may take from 1-3 minutes to complete.</div>
+    </div>
+
+    <div class="gif-suggestion" id="gifSuggestion">
+      <div class="gif-suggestion-text">Converting to GIF may fix this issue.</div>
+      <button id="gifConvertBtn" disabled>Convert to Gif</button>
+    </div>
+
+    <div class="meta">
+      <div class="pill"><strong id="outFrames">No Data</strong>Total frames</div>
+      <div class="pill"><strong id="outGrid">No Data</strong>Grid</div>
+      <div class="pill"><strong id="outSize">No Data</strong>Sheet size</div>
+      <div class="pill"><strong id="outFrameSize">No Data</strong>Frame size</div>
+    </div>
+  </section>
+
+  <section class="card preview" id="previewCard">
+    <div class="sheet-box">
+      <canvas id="sheetCanvas"></canvas>
+    </div>
+  </section>
+</div>
+
+<script>
+/* =====================================================================
+   Overdrive Background Maker  fixed
+   Main fixes vs previous version:
+   - Removed the Web Worker / OffscreenCanvas pipeline (iOS Safari support
+     for OffscreenCanvas + convertToBlob inside a worker is unreliable).
+     All compositing now runs on the main thread using a normal <canvas>,
+     yielding between frames to keep the UI responsive.
+   - Video frame capture now waits for the frame to actually be PAINTED
+     after each seek (requestVideoFrameCallback when available, double-rAF
+     fallback). This was the cause of "fails on some videos"  seeked
+     fires before the new frame is decoded on Safari/Firefox so drawImage
+     captured the previous frame or a blank one.
+   - Removed fastSeek (it jumps to keyframes, producing wrong frames on
+     videos with sparse keyframes).
+   - Draws <video> directly onto the sheet  skips createImageBitmap(video)
+     which is unreliable on Safari for several codecs.
+   - Adds a seek timeout so malformed videos fail clearly instead of hanging.
+   - Caps sheet dimensions to 4096×4096 on iOS (iOS Safari hard canvas limit).
+   ===================================================================== */
+
+const mediaInput    = document.getElementById("mediaInput");
+const nameInput     = document.getElementById("nameInput");
+const nameLabel     = document.getElementById("nameLabel");
+const autoToggle    = document.getElementById("autoToggle");
+const fpsSlider     = document.getElementById("fpsSlider");
+const skipInput     = document.getElementById("skipInput");
+const resSlider     = document.getElementById("resSlider");
+const fpsLabel      = document.getElementById("fpsLabel");
+const resLabel      = document.getElementById("resLabel");
+const buildBtn      = document.getElementById("buildBtn");
+const clearBtn      = document.getElementById("clearBtn");
+const progressTitle   = document.getElementById("progressTitle");
+const progressPercent = document.getElementById("progressPercent");
+const progressFill    = document.getElementById("progressFill");
+const progressText    = document.getElementById("progressText");
+const canvas = document.getElementById("sheetCanvas");
+const ctx    = canvas.getContext("2d");
+const outFrames    = document.getElementById("outFrames");
+const outGrid      = document.getElementById("outGrid");
+const outSize      = document.getElementById("outSize");
+const outFrameSize = document.getElementById("outFrameSize");
+
+// GIF conversion suggestion (shown when frames are being skipped)
+const gifSuggestion = document.getElementById("gifSuggestion");
+const gifConvertBtn = document.getElementById("gifConvertBtn");
+
+function showGifSuggestion() {
+  gifSuggestion.classList.add("visible");
+}
+function hideGifSuggestion() {
+  gifSuggestion.classList.remove("visible");
+  gifConvertBtn.disabled = true;
+}
+
+// Resolution preset
+const resPreset        = document.getElementById("resPreset");
+const resPresetTrigger = document.getElementById("resPresetTrigger");
+const resPresetName    = document.getElementById("resPresetName");
+const resPresetRes     = document.getElementById("resPresetRes");
+const resPresetDrop    = document.getElementById("resPresetDropdown");
+const resOptions       = resPresetDrop.querySelectorAll(".csel-option");
+const customResWrap    = document.getElementById("customResWrap");
+const customResW       = document.getElementById("customResW");
+const customResH       = document.getElementById("customResH");
+
+let currentFile = null;
+let lastProgressValue = 0;
+let currentJson = "";
+
+//  Platform detection 
+const IS_IOS = (() => {
+  const ua = navigator.userAgent || "";
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  // iPadOS 13+ reports as Mac  detect via touch
+  if (navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1) return true;
+  return false;
+})();
+const IOS_MAX_CANVAS = 4096;
+
+//  Resolution preset state 
+let presetValue = "balanced";
+
+function getMaxSheetDimensions() {
+  let maxW, maxH;
+  if (presetValue === "custom") {
+    maxW = Math.max(256, Math.min(5012, parseInt(customResW.value, 10) || 3560));
+    maxH = Math.max(256, Math.min(5012, parseInt(customResH.value, 10) || 3560));
+  } else {
+    const sel = resPresetDrop.querySelector(".csel-option.selected");
+    maxW = parseInt(sel?.dataset.w, 10) || 3560;
+    maxH = parseInt(sel?.dataset.h, 10) || 3560;
+  }
+  // iOS Safari canvas hard limit
+  if (IS_IOS) {
+    maxW = Math.min(maxW, IOS_MAX_CANVAS);
+    maxH = Math.min(maxH, IOS_MAX_CANVAS);
+  }
+  return { maxW, maxH };
+}
+
+function closePresetDrop() {
+  resPreset.classList.remove("open");
+  resPresetTrigger.setAttribute("aria-expanded", "false");
+}
+
+resPresetTrigger.addEventListener("click", () => {
+  const isOpen = resPreset.classList.contains("open");
+  isOpen ? closePresetDrop() : (resPreset.classList.add("open"), resPresetTrigger.setAttribute("aria-expanded", "true"));
+});
+
+resPresetTrigger.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); resPresetTrigger.click(); }
+  if (e.key === "Escape") closePresetDrop();
+});
+
+document.addEventListener("click", (e) => {
+  if (!resPreset.contains(e.target)) closePresetDrop();
+});
+
+resOptions.forEach(opt => {
+  opt.addEventListener("click", () => {
+    resOptions.forEach(o => o.classList.remove("selected"));
+    opt.classList.add("selected");
+    presetValue = opt.dataset.value;
+    resPresetName.textContent = opt.querySelector("span:first-child").textContent;
+    resPresetRes.textContent  = presetValue === "custom" ? "custom" : opt.querySelector(".opt-res").textContent;
+    customResWrap.style.display = presetValue === "custom" ? "" : "none";
+    closePresetDrop();
+  });
+});
+
+function clampResInput(inp) {
+  let v = parseInt(inp.value, 10);
+  if (isNaN(v) || v < 256) v = 256;
+  if (v > 5012) v = 5012;
+  inp.value = v;
+}
+customResW.addEventListener("blur", () => clampResInput(customResW));
+customResH.addEventListener("blur", () => clampResInput(customResH));
+customResW.addEventListener("change", () => clampResInput(customResW));
+customResH.addEventListener("change", () => clampResInput(customResH));
+
+//  Name validation 
+const NAME_DEFAULT = "sprite_sheet";
+
+function validateName() {
+  const raw = nameInput.value.trim();
+  const sanitized = (raw || "").replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").replace(/^_+|_+$/g, "") || "";
+  if (!sanitized || sanitized === NAME_DEFAULT) {
+    nameInput.classList.add("name-required");
+    if (!nameLabel.querySelector(".req-star")) {
+      const star = document.createElement("span");
+      star.className = "req-star";
+      star.textContent = " *";
+      nameLabel.appendChild(star);
+    }
+    return false;
+  }
+  nameInput.classList.remove("name-required");
+  const star = nameLabel.querySelector(".req-star");
+  if (star) star.remove();
+  return true;
+}
+
+nameInput.addEventListener("input", () => {
+  nameInput.classList.remove("name-required");
+  const star = nameLabel.querySelector(".req-star");
+  if (star) star.remove();
+  if (lastProgressValue > 0)
+    setProgress(lastProgressValue, "Name changed", "Build again to export with the new name buddy.");
+});
+
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = "high";
+
+function updateSliderFill(slider) {
+  const min = +slider.min || 0;
+  const max = +slider.max || 100;
+  const pct = ((+slider.value - min) / (max - min)) * 100;
+  slider.style.background =
+    `linear-gradient(to right, #7c3aed 0%, #6ea8fe ${pct}%, rgba(255,255,255,.10) ${pct}%)`;
+}
+
+function updateLabels() {
+  fpsLabel.textContent = fpsSlider.value;
+  resLabel.textContent = resSlider.value + "%";
+  updateSliderFill(fpsSlider);
+  updateSliderFill(resSlider);
+}
+
+function sanitizeFileName(name) {
+  return (name || "sprite_sheet")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/^_+|_+$/g, "") || "sprite_sheet";
+}
+
+function setProgress(pct, title, text) {
+  const value = Math.max(0, Math.min(100, Math.round(pct)));
+  lastProgressValue = value;
+  progressFill.style.width = value + "%";
+  progressPercent.textContent = value + "%";
+  progressTitle.textContent = title || "";
+  progressText.textContent   = text  || "";
+  if (value === 0) {
+    progressFill.classList.remove("active", "done");
+  } else if (value === 100) {
+    progressFill.classList.remove("active");
+    progressFill.classList.add("done");
+  } else {
+    progressFill.classList.remove("done");
+    progressFill.classList.add("active");
+  }
+}
+
+function resetPreview() {
+  canvas.width = 1; canvas.height = 1;
+  ctx.clearRect(0, 0, 1, 1);
+  outFrames.textContent    = "No Data";
+  outGrid.textContent      = "No Data";
+  outSize.textContent      = "No Data";
+  outFrameSize.textContent = "No Data";
+}
+
+function showIdle() {
+  setProgress(0, "Waiting...", "This may take from 1-3 minutes to complete.");
+}
+
+function clearAll() {
+  currentFile = null;
+  mediaInput.value = "";
+  buildBtn.disabled = true;
+  clearBtn.disabled = true;
+  currentJson = "";
+  resetPreview();
+  showIdle();
+}
+
+function isSupportedMedia(file) {
+  if (!file) return false;
+  const type = (file.type || "").toLowerCase();
+  const name = (file.name || "").toLowerCase();
+  return type === "image/gif" || type.startsWith("video/") || name.endsWith(".gif");
+}
+
+function computeGrid(totalFrames) {
+  const columns = Math.min(10, Math.max(1, totalFrames));
+  const rows    = Math.max(1, Math.ceil(totalFrames / columns));
+  return { columns, rows };
+}
+
+function waitForEvent(target, eventName, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const onEvent = () => { if (done) return; done = true; cleanup(); resolve(); };
+    const onError = () => { if (done) return; done = true; cleanup(); reject(new Error("Media load failed.")); };
+    const cleanup = () => {
+      target.removeEventListener(eventName, onEvent);
+      target.removeEventListener("error",   onError);
+      if (to) clearTimeout(to);
+    };
+    target.addEventListener(eventName, onEvent, { once: true });
+    target.addEventListener("error",   onError, { once: true });
+    const to = timeoutMs ? setTimeout(() => {
+      if (done) return; done = true; cleanup();
+      reject(new Error("Timed out waiting for " + eventName + "."));
+    }, timeoutMs) : null;
+  });
+}
+
+function yieldToMain() {
+  if (typeof scheduler !== "undefined" && typeof scheduler.yield === "function") {
+    return scheduler.yield();
+  }
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/* 
+   Video frame extraction (THE big fix)
+    */
+
+// Seek with a timeout  some malformed videos hang on seek instead of erroring.
+function seekVideoSafe(video, time) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const cleanup = () => {
+      video.removeEventListener("seeked", onSeeked);
+      video.removeEventListener("error",  onError);
+      if (to) clearTimeout(to);
+    };
+    const onSeeked = () => { if (done) return; done = true; cleanup(); resolve(); };
+    const onError  = () => { if (done) return; done = true; cleanup(); reject(new Error("Video seek failed.")); };
+    video.addEventListener("seeked", onSeeked, { once: true });
+    video.addEventListener("error",  onError,  { once: true });
+    const to = setTimeout(() => {
+      if (done) return; done = true; cleanup();
+      reject(new Error("Seek timed out."));
+    }, 2000);
+    try {
+      video.currentTime = time;
+    } catch (e) {
+      if (done) return; done = true; cleanup();
+      reject(e);
+    }
+  });
+}
+
+// Wait for the new frame to actually be PAINTED to the video element.
+// This is the key fix: 'seeked' fires before the frame is decoded on
+// Safari/Firefox, so drawing immediately captures the wrong frame.
+function waitForVideoFramePainted(video) {
+  return new Promise(resolve => {
+    let resolved = false;
+    const finish = () => { if (resolved) return; resolved = true; resolve(); };
+    if (typeof video.requestVideoFrameCallback === "function") {
+      video.requestVideoFrameCallback(() => finish());
+      // Safety: some browsers won't fire rVFC when paused after seek.
+      setTimeout(finish, 250);
+    } else {
+      // Double-rAF: one to schedule paint, one to ensure it landed.
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+      // Safety: rAF doesn't fire in backgrounded tabs.
+      setTimeout(finish, 500);
+    }
+  });
+}
+
+// PNG encode with dataURL fallback. iOS Safari sometimes returns null from
+// toBlob() on huge canvases, but toDataURL() may still work. Last resort:
+// fail with a clear message rather than hang or output a broken zip.
+function canvasToBlobSafe(canvas, mime) {
+  const type = mime || "image/png";
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const ok   = (b) => { if (!settled) { settled = true; resolve(b); } };
+    const fail = (e) => { if (!settled) { settled = true; reject(e); } };
+    const sizeMsg = canvas.width + "x" + canvas.height;
+
+    // Safety timeout  toBlob has been known to never call back on iOS
+    // when the canvas exceeds the device memory limit.
+    const to = setTimeout(() => {
+      fail(new Error("PNG encoding timed out at " + sizeMsg + ". Try a smaller resolution preset."));
+    }, 60000);
+
+    try {
+      canvas.toBlob((blob) => {
+        if (blob) { clearTimeout(to); ok(blob); return; }
+        // toBlob returned null  try the dataURL path.
+        try {
+          const dataURL = canvas.toDataURL(type);
+          if (!dataURL || dataURL === "data:,") {
+            clearTimeout(to);
+            fail(new Error("PNG encoding failed at " + sizeMsg + " (canvas too large for this device). Try a smaller resolution preset."));
+            return;
+          }
+          fetch(dataURL).then(r => r.blob()).then(b => { clearTimeout(to); ok(b); }).catch(e => { clearTimeout(to); fail(e); });
+        } catch (e) {
+          clearTimeout(to);
+          fail(new Error("PNG encoding failed at " + sizeMsg + " (canvas too large for this device). Try a smaller resolution preset."));
+        }
+      }, type);
+    } catch (e) {
+      clearTimeout(to);
+      fail(e);
+    }
+  });
+}
+
+async function captureAndCompositeVideo(file, skip, captureFps, sourceCount, plan, onProgress) {
+  const video = document.createElement("video");
+  video.preload = "auto";
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+  // crossOrigin not set  we're using blob: URLs, not cross-origin URLs.
+
+  const url = URL.createObjectURL(file);
+  video.src = url;
+
+  // Some browsers (Safari) need a kick to start decoding.
+  try { video.load(); } catch (_) {}
+
+  try {
+    await waitForEvent(video, "loadedmetadata", 15000);
+    if (video.readyState < 2) {
+      // wait until we have at least current-data
+      await waitForEvent(video, "loadeddata", 15000);
+    }
+
+    const duration = Number.isFinite(video.duration) ? video.duration : 0;
+    if (!duration || duration <= 0) {
+      throw new Error("Could not read video duration. The file may be unsupported.");
+    }
+    if (!video.videoWidth || !video.videoHeight) {
+      throw new Error("Could not read video dimensions. The codec may not be supported in this browser.");
+    }
+
+    const stride = Math.max(1, skip);
+    const total  = Math.max(1, Math.ceil(sourceCount / stride));
+
+    const sheetW = plan.frameWidth * plan.columns;
+    const sheetH = plan.frameHeight * plan.rows;
+    const sheet  = document.createElement("canvas");
+    sheet.width  = sheetW;
+    sheet.height = sheetH;
+    const sctx   = sheet.getContext("2d");
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = "high";
+    sctx.clearRect(0, 0, sheetW, sheetH);
+
+    let selectedIndex   = 0;
+    let skipped         = 0;
+    let consecutiveFails = 0;
+
+    // Small offscreen canvas holding the most recent successfully captured
+    // frame. If a later seek fails we draw this into the slot so the
+    // animation gets a tiny stutter instead of a blank gap.
+    const lastGood    = document.createElement("canvas");
+    lastGood.width    = plan.frameWidth;
+    lastGood.height   = plan.frameHeight;
+    const lastGoodCtx = lastGood.getContext("2d");
+    lastGoodCtx.imageSmoothingEnabled = true;
+    lastGoodCtx.imageSmoothingQuality = "high";
+    let haveLastGood  = false;
+
+    // Try a seek+wait+draw to the lastGood canvas. Returns true on success.
+    async function tryGrab(time) {
+      try {
+        await seekVideoSafe(video, time);
+        await waitForVideoFramePainted(video);
+        lastGoodCtx.clearRect(0, 0, plan.frameWidth, plan.frameHeight);
+        lastGoodCtx.drawImage(video, 0, 0, plan.frameWidth, plan.frameHeight);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    for (let srcIndex = 0; srcIndex < sourceCount; srcIndex += stride) {
+      const time = Math.max(0, Math.min(duration - 0.001, srcIndex / captureFps));
+
+      // Update progress on EVERY frame so a slow seek doesn't make the UI
+      // look frozen for 8+ seconds at a time.
+      {
+        const skipNote = skipped > 0 ? " (" + skipped + " skipped)" : "";
+        onProgress(
+          8 + (selectedIndex / total) * 70,
+          "Capturing frames...",
+          "Frame " + (selectedIndex + 1) + "/" + total + "  " + time.toFixed(2) + "s" + skipNote
+        );
+      }
+
+      // Try the exact time, then one small nudge forward. Buggy or poorly-
+      // keyframed videos often fail at one specific moment but succeed a
+      // few ms away. Capping at 2 attempts keeps per-frame cost <= ~4s.
+      let ok = await tryGrab(time);
+      if (!ok) {
+        const nudgeFwd = Math.min(duration - 0.001, time + 0.04);
+        ok = await tryGrab(nudgeFwd);
+      }
+
+      const x = (selectedIndex % plan.columns) * plan.frameWidth;
+      const y = Math.floor(selectedIndex / plan.columns) * plan.frameHeight;
+
+      if (ok) {
+        try {
+          sctx.drawImage(lastGood, x, y);
+          haveLastGood = true;
+          consecutiveFails = 0;
+        } catch (drawErr) {
+          // drawing the small lastGood onto sheet should never fail, but
+          // if the sheet itself is corrupt count this as a skip.
+          skipped++;
+          consecutiveFails++;
+          showGifSuggestion();
+        }
+      } else {
+        skipped++;
+        consecutiveFails++;
+        showGifSuggestion();
+        if (haveLastGood) {
+          // Reuse most recent successful frame so the animation doesn't gap.
+          try { sctx.drawImage(lastGood, x, y); } catch (_) {}
+        }
+        // else: very first frame failed  leave the slot transparent.
+      }
+
+      selectedIndex++;
+
+      // Safety A: bail if 3 frames in a row fail. This is the real
+      // "hang" guard  without it a broken video can waste minutes
+      // burning through seek timeouts back to back. With a 2s timeout
+      // and 2 attempts per frame, this caps the bad-video wait at ~24s.
+      if (consecutiveFails >= 3) {
+        throw new Error(
+          "An error occured while transforming your video, this issue can be saved by converting your video into gif."
+        );
+      }
+
+      // Safety B: if it's clearly not working overall, bail instead of
+      // spinning through hundreds of failed seeks.
+      if (selectedIndex >= 10 && skipped > selectedIndex * 0.6) {
+        throw new Error(
+          "Too many frame failures (" + skipped + "/" + selectedIndex + "). " +
+          "Try the 'Convert to Gif' button below', it may fix the issue!"
+        );
+      }
+
+      // Yield every few frames to keep the UI responsive.
+      if ((selectedIndex & 1) === 0) await yieldToMain();
+    }
+
+    const succeeded = selectedIndex - skipped;
+    if (succeeded === 0) {
+      throw new Error(
+        "Could not extract any frames from this video :( " +
+        "The codec may not be supported in this browser, Try a different video or re-encode to H.264."
+      );
+    }
+
+    onProgress(80, "Encoding PNG...", "Converting the sprite sheet to PNG.");
+    const pngBlob = await canvasToBlobSafe(sheet, "image/png");
+
+    return { pngBlob, selectedCount: selectedIndex, skipped, sheetCanvas: sheet };
+  } finally {
+    URL.revokeObjectURL(url);
+    try { video.removeAttribute("src"); video.load(); } catch (_) {}
+  }
+}
+
+/* 
+   Playback-based extraction (the "Convert to GIF" fallback)
+   Plays the video and captures frames as they're presented via
+   requestVideoFrameCallback. Bypasses seeking entirely  slower
+   on long clips, but works on videos where seeking is unreliable.
+    */
+
+async function captureByPlayback(file, skip, captureFps, sourceCount, plan, onProgress) {
+  const video = document.createElement("video");
+  video.preload = "auto";
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+
+  const url = URL.createObjectURL(file);
+  video.src = url;
+  try { video.load(); } catch (_) {}
+
+  if (typeof video.requestVideoFrameCallback !== "function") {
+    URL.revokeObjectURL(url);
+    throw new Error("Playback extraction needs requestVideoFrameCallback, which this browser doesn't support. Try Chrome, Firefox, Edge, or Safari 15.4+.");
+  }
+
+  try {
+    await waitForEvent(video, "loadedmetadata", 15000);
+    if (video.readyState < 2) await waitForEvent(video, "loadeddata", 15000);
+
+    const duration = Number.isFinite(video.duration) ? video.duration : 0;
+    if (!duration) throw new Error("Could not read video duration.");
+    if (!video.videoWidth || !video.videoHeight) {
+      throw new Error("Could not read video dimensions. The codec may not be supported.");
+    }
+
+    const stride = Math.max(1, skip);
+    const total  = Math.max(1, Math.ceil(sourceCount / stride));
+
+    // Pre-compute the target timestamps we want to capture.
+    const targets = [];
+    for (let i = 0; i < total; i++) {
+      const t = Math.max(0, Math.min(duration - 0.001, (i * stride) / captureFps));
+      targets.push(t);
+    }
+
+    const sheetW = plan.frameWidth * plan.columns;
+    const sheetH = plan.frameHeight * plan.rows;
+    const sheet  = document.createElement("canvas");
+    sheet.width  = sheetW;
+    sheet.height = sheetH;
+    const sctx   = sheet.getContext("2d");
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = "high";
+    sctx.clearRect(0, 0, sheetW, sheetH);
+
+    const lastGood    = document.createElement("canvas");
+    lastGood.width    = plan.frameWidth;
+    lastGood.height   = plan.frameHeight;
+    const lastGoodCtx = lastGood.getContext("2d");
+    lastGoodCtx.imageSmoothingEnabled = true;
+    lastGoodCtx.imageSmoothingQuality = "high";
+    let haveLastGood = false;
+
+    let captured = 0;
+    let skipped  = 0;
+    let nextIdx  = 0;
+    let lastProgressMt = -1;
+    let lastProgressAt = Date.now();
+
+    await new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = () => { if (settled) return; settled = true; clearTimeout(watchdog); try { video.pause(); } catch (_) {} resolve(); };
+      const fail   = (e) => { if (settled) return; settled = true; clearTimeout(watchdog); try { video.pause(); } catch (_) {} reject(e); };
+
+      // Watchdog: if playback time hasn't advanced in 6s, assume stall.
+      // Generous total budget: at least 30s, or 3x duration, whichever is more.
+      const totalBudgetMs = Math.max(30000, Math.ceil(duration * 3000));
+      const watchdog = setTimeout(function tick() {
+        if (settled) return;
+        if (Date.now() - lastProgressAt > 6000) {
+          fail(new Error("Playback stalled  the video player stopped advancing."));
+          return;
+        }
+        if (Date.now() - lastProgressAt > totalBudgetMs) {
+          fail(new Error("Playback timed out."));
+          return;
+        }
+        setTimeout(tick, 1000);
+      }, 1000);
+
+      const captureSlot = (slotIdx) => {
+        const x = (slotIdx % plan.columns) * plan.frameWidth;
+        const y = Math.floor(slotIdx / plan.columns) * plan.frameHeight;
+        try {
+          lastGoodCtx.clearRect(0, 0, plan.frameWidth, plan.frameHeight);
+          lastGoodCtx.drawImage(video, 0, 0, plan.frameWidth, plan.frameHeight);
+          sctx.drawImage(lastGood, x, y);
+          haveLastGood = true;
+          return true;
+        } catch (_) {
+          return false;
+        }
+      };
+
+      const onFrame = (now, meta) => {
+        if (settled) return;
+        const mt = meta.mediaTime;
+        if (mt !== lastProgressMt) { lastProgressMt = mt; lastProgressAt = Date.now(); }
+
+        // Capture every target we've reached. (More than one may pass
+        // between rVFC callbacks if framerates differ.)
+        while (nextIdx < targets.length && mt >= targets[nextIdx] - 0.005) {
+          if (captureSlot(nextIdx)) {
+            captured++;
+          } else {
+            skipped++;
+            if (haveLastGood) {
+              const x = (nextIdx % plan.columns) * plan.frameWidth;
+              const y = Math.floor(nextIdx / plan.columns) * plan.frameHeight;
+              try { sctx.drawImage(lastGood, x, y); } catch (_) {}
+            }
+          }
+          nextIdx++;
+        }
+
+        if ((nextIdx & 3) === 0 || nextIdx === total) {
+          const skipNote = skipped > 0 ? " (" + skipped + " skipped)" : "";
+          onProgress(
+            8 + (nextIdx / total) * 70,
+            "Playing through video...",
+            "Frame " + nextIdx + "/" + total + "  " + mt.toFixed(2) + "s" + skipNote
+          );
+        }
+
+        if (nextIdx >= targets.length) { finish(); return; }
+        video.requestVideoFrameCallback(onFrame);
+      };
+
+      video.addEventListener("ended", () => {
+        // Video ended before we hit every target  fill the rest with the
+        // last good frame so the animation doesn't have transparent gaps.
+        while (nextIdx < targets.length) {
+          if (haveLastGood) {
+            const x = (nextIdx % plan.columns) * plan.frameWidth;
+            const y = Math.floor(nextIdx / plan.columns) * plan.frameHeight;
+            try { sctx.drawImage(lastGood, x, y); } catch (_) {}
+          }
+          skipped++;
+          nextIdx++;
+        }
+        finish();
+      }, { once: true });
+
+      video.addEventListener("error", () => fail(new Error("Video playback error.")), { once: true });
+
+      try { video.currentTime = 0; } catch (_) {}
+      video.requestVideoFrameCallback(onFrame);
+      video.play().catch(e => fail(new Error("Could not play video: " + (e.message || e) + " (autoplay may be blocked).")));
+    });
+
+    if (captured === 0) {
+      throw new Error("Playback finished without capturing any frames. The codec may not render to a canvas in this browser.");
+    }
+
+    onProgress(80, "Encoding PNG...", "Converting the sprite sheet to PNG.");
+    const pngBlob = await canvasToBlobSafe(sheet, "image/png");
+
+    return { pngBlob, selectedCount: nextIdx, skipped, sheetCanvas: sheet };
+  } finally {
+    URL.revokeObjectURL(url);
+    try { video.pause(); video.removeAttribute("src"); video.load(); } catch (_) {}
+  }
+}
+
+/* 
+   GIF decoding (main thread, ImageDecoder)
+    */
+
+async function decodeGifMainThread(file, skip, plan, sourceMeta, onProgress) {
+  if (!("ImageDecoder" in window)) {
+    throw new Error("GIF frame extraction requires Chrome, Firefox, or Edge (ImageDecoder API). Please use a video file instead, or switch browsers.");
+  }
+
+  const buffer  = await file.arrayBuffer();
+  const decoder = new ImageDecoder({ data: buffer, type: "image/gif" });
+  await decoder.tracks.ready;
+  const track   = decoder.tracks.selectedTrack;
+  const total   = track?.frameCount || sourceMeta.frameCount || 1;
+  const stride  = Math.max(1, skip);
+  const selCount = Math.max(1, Math.ceil(total / stride));
+
+  const sheetW = plan.frameWidth * plan.columns;
+  const sheetH = plan.frameHeight * plan.rows;
+  const sheet  = document.createElement("canvas");
+  sheet.width  = sheetW;
+  sheet.height = sheetH;
+  const sctx   = sheet.getContext("2d");
+  sctx.imageSmoothingEnabled = true;
+  sctx.imageSmoothingQuality = "high";
+
+  let si       = 0;
+  let skipped  = 0;
+  let haveLastGood = false;
+
+  // Temporary canvas holding the most recent successfully decoded frame.
+  const lastGood    = document.createElement("canvas");
+  lastGood.width    = plan.frameWidth;
+  lastGood.height   = plan.frameHeight;
+  const lastGoodCtx = lastGood.getContext("2d");
+  lastGoodCtx.imageSmoothingEnabled = true;
+  lastGoodCtx.imageSmoothingQuality = "high";
+
+  for (let srcIdx = 0; srcIdx < total; srcIdx += stride) {
+    let ok = false;
+    try {
+      const decoded = await decoder.decode({ frameIndex: srcIdx });
+      const srcW = decoded.image.codedWidth  || decoded.image.displayWidth  || sourceMeta.width;
+      const srcH = decoded.image.codedHeight || decoded.image.displayHeight || sourceMeta.height;
+      lastGoodCtx.clearRect(0, 0, plan.frameWidth, plan.frameHeight);
+      lastGoodCtx.drawImage(decoded.image, 0, 0, srcW, srcH, 0, 0, plan.frameWidth, plan.frameHeight);
+      if (decoded.image && decoded.image.close) decoded.image.close();
+      ok = true;
+    } catch (_) {
+      // Corrupted GIF frame  fall through to reuse-last-good path.
+    }
+
+    const x = (si % plan.columns) * plan.frameWidth;
+    const y = Math.floor(si / plan.columns) * plan.frameHeight;
+
+    if (ok) {
+      sctx.drawImage(lastGood, x, y);
+      haveLastGood = true;
+    } else {
+      skipped++;
+      showGifSuggestion();
+      if (haveLastGood) {
+        try { sctx.drawImage(lastGood, x, y); } catch (_) {}
+      }
+    }
+    si++;
+
+    if ((si & 7) === 0 || si === selCount) {
+      const skipNote = skipped > 0 ? " (" + skipped + " skipped)" : "";
+      onProgress(8 + (si / selCount) * 72, "Decoding GIF...", "Frame " + si + "/" + selCount + skipNote);
+      await yieldToMain();
+    }
+  }
+  try { decoder.close(); } catch (_) {}
+
+  if (si - skipped === 0) {
+    throw new Error("Could not decode any frames from this GIF. The file may be corrupted.");
+  }
+
+  onProgress(80, "Encoding PNG...", "Converting the sprite sheet to PNG.");
+  const pngBlob = await canvasToBlobSafe(sheet, "image/png");
+
+  return { pngBlob, selectedCount: si, skipped, sheetCanvas: sheet };
+}
+
+/* 
+   Metadata readers
+    */
+
+async function readGifInfo(file) {
+  if ("ImageDecoder" in window) {
+    try {
+      const buffer  = await file.arrayBuffer();
+      const decoder = new ImageDecoder({ data: buffer, type: "image/gif" });
+      await decoder.tracks.ready;
+      const track  = decoder.tracks.selectedTrack;
+      let width    = track?.codedWidth  || 0;
+      let height   = track?.codedHeight || 0;
+      const frameCount = track?.frameCount || 1;
+      if (!width || !height) {
+        const result = await decoder.decode({ frameIndex: 0 });
+        width  = result.image.codedWidth   || result.image.displayWidth  || 0;
+        height = result.image.codedHeight  || result.image.displayHeight || 0;
+        if (result.image && result.image.close) result.image.close();
+      }
+      decoder.close();
+      if (width && height) return { width, height, frameCount };
+    } catch (e) { /* fall through */ }
+  }
+
+  // Fallback: use <img> for dimensions, scan bytes for frame count.
+  const url = URL.createObjectURL(file);
+  const img = await new Promise((resolve, reject) => {
+    const i = new Image();
+    i.onload  = () => resolve(i);
+    i.onerror = () => reject(new Error("Failed to load GIF."));
+    i.src = url;
+  });
+  const width  = img.naturalWidth;
+  const height = img.naturalHeight;
+  URL.revokeObjectURL(url);
+
+  if (!width || !height) throw new Error("Could not read GIF dimensions. The file may be corrupted.");
+
+  const buf   = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let frameCount = 0;
+  for (let i = 0; i < bytes.length - 1; i++) {
+    if (bytes[i] === 0x21 && bytes[i + 1] === 0xF9) frameCount++;
+  }
+  if (frameCount === 0) frameCount = 1;
+
+  return { width, height, frameCount };
+}
+
+async function readVideoInfo(file, captureFps) {
+  const video = document.createElement("video");
+  video.preload = "auto";
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+  const url = URL.createObjectURL(file);
+  video.src = url;
+  try { video.load(); } catch (_) {}
+
+  try {
+    await waitForEvent(video, "loadedmetadata", 15000);
+    const width      = video.videoWidth  || 0;
+    const height     = video.videoHeight || 0;
+    const duration   = Number.isFinite(video.duration) ? video.duration : 0;
+    const frameCount = Math.max(1, Math.floor(duration * captureFps));
+    if (!width || !height) throw new Error("Could not read video dimensions. The codec may not be supported in this browser.");
+    if (!duration)         throw new Error("Could not read video duration. The file may be unsupported.");
+    return { width, height, frameCount, duration };
+  } finally {
+    URL.revokeObjectURL(url);
+    try { video.removeAttribute("src"); video.load(); } catch (_) {}
+  }
+}
+
+async function readSourceMeta(file, captureFps) {
+  const isGif = (file.type || "").toLowerCase() === "image/gif" || /\.gif$/i.test(file.name);
+  return isGif ? readGifInfo(file) : readVideoInfo(file, captureFps);
+}
+
+/* 
+   Output helpers
+    */
+
+function buildJson(frameWidth, frameHeight, columns, rows, totalFrames, frameRate) {
+  return {
+    sizeX:      frameWidth  * columns,
+    sizeY:      frameHeight * rows,
+    frameSizeX: frameWidth,
+    frameSizeY: frameHeight,
+    columns, rows, totalFrames, frameRate,
+    noGradient: true
+  };
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function applyAutoState() {
+  const locked = autoToggle.checked;
+  fpsSlider.disabled = locked;
+  skipInput.disabled = locked;
+  resSlider.disabled = locked;
+  if (locked) { fpsSlider.value = 24; resSlider.value = 100; skipInput.value = 1; }
+  updateLabels();
+}
+
+/* 
+   Main build pipeline
+    */
+
+async function buildZip(opts) {
+  opts = opts || {};
+  if (!currentFile) return;
+
+  if (!validateName()) {
+    nameInput.focus();
+    setProgress(0, "Name needed", "Please change the file name before exporting!");
+    return;
+  }
+
+  const baseName   = sanitizeFileName(nameInput.value);
+  const fps        = Math.max(5,  Math.min(30,  Number(fpsSlider.value) || 24));
+  const manualRes  = Math.max(0,  Math.min(100, Number(resSlider.value) || 100));
+  const manualSkip = Math.max(1,  parseInt(skipInput.value || "1", 10));
+  const captureFps = fps;
+  const auto       = autoToggle.checked;
+  const isGif      = (currentFile.type || "").toLowerCase() === "image/gif" || /\.gif$/i.test(currentFile.name);
+
+  if (isGif && !("ImageDecoder" in window)) {
+    throw new Error("GIF frame extraction requires Chrome, Firefox, or Edge. Safari/iOS don't support the ImageDecoder API yet  please use a video file instead.");
+  }
+
+  const { maxW, maxH } = getMaxSheetDimensions();
+
+  setProgress(2, "Reading source...", "Checking media size and frame count...");
+  const sourceMeta = await readSourceMeta(currentFile, captureFps);
+
+  const duration = sourceMeta.duration != null
+    ? sourceMeta.duration
+    : sourceMeta.frameCount / captureFps;
+
+  let targetFrames;
+  if      (sourceMeta.frameCount <= 32) targetFrames = sourceMeta.frameCount;
+  else if (duration <= 2)               targetFrames = Math.min(sourceMeta.frameCount, 48);
+  else if (duration <= 5)               targetFrames = Math.min(sourceMeta.frameCount, 60);
+  else if (duration <= 15)              targetFrames = Math.min(sourceMeta.frameCount, 75);
+  else                                  targetFrames = Math.min(sourceMeta.frameCount, Math.max(60, Math.round(duration * 5)));
+
+  const autoSkip      = Math.max(1, Math.ceil(sourceMeta.frameCount / targetFrames));
+  const skip          = auto ? autoSkip : manualSkip;
+  const selectedCount = Math.max(1, Math.ceil(sourceMeta.frameCount / skip));
+  const grid          = computeGrid(selectedCount);
+
+  let res;
+  if (auto) {
+    const maxScaleW = maxW / (sourceMeta.width  * grid.columns);
+    const maxScaleH = maxH / (sourceMeta.height * grid.rows);
+    const autoScale = Math.min(1, maxScaleW, maxScaleH);
+    res = Math.max(5, Math.min(100, Math.floor(autoScale * 100)));
+    resSlider.value = res;
+    updateLabels();
+  } else {
+    res = manualRes;
+  }
+  const scale = Math.max(0.01, res / 100);
+
+  let frameWidth  = Math.max(1, Math.round(sourceMeta.width  * scale));
+  let frameHeight = Math.max(1, Math.round(sourceMeta.height * scale));
+
+  const capScale = Math.min(
+    1,
+    maxW / (frameWidth  * grid.columns),
+    maxH / (frameHeight * grid.rows)
+  );
+  if (capScale < 1) {
+    frameWidth  = Math.max(1, Math.floor(frameWidth  * capScale));
+    frameHeight = Math.max(1, Math.floor(frameHeight * capScale));
+  }
+
+  const plan = {
+    frameWidth,
+    frameHeight,
+    columns: grid.columns,
+    rows:    grid.rows
+  };
+
+  const json = buildJson(plan.frameWidth, plan.frameHeight, plan.columns, plan.rows, selectedCount, fps);
+
+  const platformNote = IS_IOS ? " (iOS: capped at " + IOS_MAX_CANVAS + "px)" : "";
+  const capNote = capScale < 1
+    ? " Sheet capped at " + maxW + "x" + maxH + platformNote + " (scaled x" + capScale.toFixed(3) + ")."
+    : "";
+  const resNote = auto ? res + "% (auto)" : res + "%";
+  setProgress(6, "Preparing export...",
+    "frames: " + sourceMeta.frameCount + ". Skip: " + skip + ". Res: " + resNote + ". FPS: " + fps + "." + capNote);
+
+  let result;
+  if (isGif) {
+    setProgress(8, "Decoding GIF...", "Reading all frames...");
+    result = await decodeGifMainThread(currentFile, skip, plan, sourceMeta, setProgress);
+  } else if (opts.forcePlayback) {
+    setProgress(8, "Playing through video...",
+      "Using playback extraction (no seeking)  this takes about as long as the video itself.");
+    result = await captureByPlayback(
+      currentFile, skip, captureFps, sourceMeta.frameCount, plan, setProgress
+    );
+  } else {
+    setProgress(8, "Extracting frames",
+      "Capturing every " + skip + " frame" + (skip === 1 ? "" : "s") + ".");
+    result = await captureAndCompositeVideo(
+      currentFile, skip, captureFps, sourceMeta.frameCount, plan, setProgress
+    );
+  }
+  const pngBlob = result.pngBlob;
+
+  // Preview
+  canvas.width  = plan.frameWidth  * plan.columns;
+  canvas.height = plan.frameHeight * plan.rows;
+  // Draw the assembled sheet straight onto the preview canvas  fast and
+  // avoids waiting for an Image to decode the PNG we just made.
+  if (result.sheetCanvas) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(result.sheetCanvas, 0, 0);
+  } else {
+    const preview = new Image();
+    preview.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(preview, 0, 0);
+      URL.revokeObjectURL(preview.src);
+    };
+    preview.src = URL.createObjectURL(pngBlob);
+  }
+
+  outFrames.textContent    = String(selectedCount);
+  outGrid.textContent      = json.columns + " x " + json.rows;
+  outSize.textContent      = json.sizeX   + " x " + json.sizeY;
+  outFrameSize.textContent = json.frameSizeX + " x " + json.frameSizeY;
+  currentJson = JSON.stringify(json, null, 4);
+
+  setProgress(90, "Packing up...",
+    "Bundling " + baseName + ".png and " + baseName + ".json.");
+  const zip = new JSZip();
+  zip.file(baseName + ".json", currentJson);
+  zip.file(baseName + ".png",  pngBlob);
+
+  let zipBlob;
+  try {
+    zipBlob = await zip.generateAsync({
+      type: "blob", streamFiles: true, compression: "DEFLATE"
+    });
+  } catch (zipErr) {
+    throw new Error("ZIP creation failed: " + (zipErr.message || zipErr) + ". The sheet may be too large for this device's memory.");
+  }
+
+  setProgress(98, "Downloading", "Saving " + baseName + ".zip.");
+  downloadBlob(zipBlob, baseName + ".zip");
+
+  const skippedNote = (result.skipped && result.skipped > 0)
+    ? " (" + result.skipped + " frame" + (result.skipped === 1 ? "" : "s") + " were unreadable and reused the previous frame)"
+    : "";
+  setProgress(100, "Finished",
+    "Exported: " + baseName + ".png, " + baseName + ".json, and " + baseName + ".zip." + skippedNote);
+}
+
+/* 
+   Event wiring
+    */
+
+const allCards = document.querySelectorAll(".card");
+allCards.forEach(card => {
+  card.addEventListener("click", () => {
+    allCards.forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+  });
+});
+
+mediaInput.addEventListener("change", () => {
+  hideGifSuggestion();
+  currentFile = mediaInput.files?.[0] ?? null;
+  if (currentFile && !isSupportedMedia(currentFile)) {
+    currentFile = null; mediaInput.value = "";
+    buildBtn.disabled = true; clearBtn.disabled = true;
+    currentJson = ""; resetPreview(); showIdle(); return;
+  }
+  buildBtn.disabled = !currentFile;
+  clearBtn.disabled = !currentFile;
+  currentJson = "";
+  if (currentFile) setProgress(0, "File loaded", "Ready to process " + currentFile.name + ".");
+  else { resetPreview(); showIdle(); }
+});
+
+fpsSlider.addEventListener("input", updateLabels);
+resSlider.addEventListener("input", updateLabels);
+
+autoToggle.addEventListener("change", () => {
+  applyAutoState();
+  setProgress(0,
+    autoToggle.checked ? "Auto enabled" : "Auto disabled",
+    autoToggle.checked
+      ? "FPS, skip, resolution, etc... are automatically put in per source (Resolution % will update when you generate)."
+      : "Manual Labor :0"
+  );
+});
+
+// Helper that runs a build with the given options and manages the buttons /
+// suggestion-box state. Used by both "Generate ZIP" and "Convert to GIF".
+async function runBuild(opts) {
+  if (!currentFile) return;
+  buildBtn.disabled = true;
+  gifConvertBtn.disabled = true;
+  hideGifSuggestion();
+  try {
+    await buildZip(opts);
+  } catch (err) {
+    console.error(err);
+    setProgress(0, "Error", (err && err.message) ? err.message : "Something went wrong.");
+  } finally {
+    buildBtn.disabled = !currentFile;
+    // Only re-enable the Convert button if the suggestion is still on screen
+    // (i.e., some frames were skipped during this run).
+    if (gifSuggestion.classList.contains("visible")) {
+      gifConvertBtn.disabled = false;
+    }
+  }
+}
+
+buildBtn.addEventListener("click", () => runBuild());
+gifConvertBtn.addEventListener("click", () => runBuild({ forcePlayback: true }));
+
+clearBtn.addEventListener("click", () => { hideGifSuggestion(); clearAll(); });
+
+clearAll();
+applyAutoState();
+updateLabels();
+</script>
+</body>
+</html>

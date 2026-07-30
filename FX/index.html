@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fx is gay lmao uwu</title>
+<style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #333333;
+    font-family: 'Arial', sans-serif;
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+}
+.big-text {
+    font-size: 4em;
+    font-weight: bold;
+    margin: 0 0 20px 0;
+    word-wrap: break-word;
+}
+.small-text {
+    font-size: 1.2em;
+    font-weight: 100;
+    white-space: pre-wrap;
+    max-width: 90vw;
+    line-height: 1.4em;
+    word-break: break-word;
+}
+</style>
+</head>
+<body>
+<div class="big-text">FX Is Gay</div>
+<div class="small-text" id="smallText"></div>
+<script>
+const repeatCount = 90000;
+const text = "Like hes so" + "o".repeat(repeatCount) + " gay lol";
+const smallText = document.getElementById("smallText");
+let i = 0;
+function typeWriter() {
+    if (i < text.length) {
+        smallText.textContent += text.charAt(i);
+        i++;
+        setTimeout(typeWriter, 0);
+    }
+}
+typeWriter();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "executors": [
+    { "name": "Xeno", "platform": "Windows", "tags": ["warning"], "website": "https://xeno.onl/" },
+    { "name": "Volt", "platform": "Windows", "tags": ["unknown", "paid"], "website": "https://volt.bz/" },
+    { "name": "kzcheats", "platform": "Windows", "tags": ["unknown", "paid"] },
+    { "name": "Volcano", "platform": "Windows", "tags": ["unknown", "paid"], "website": "https://volcano.wtf/" },
+    { "name": "Seliware", "platform": "Windows", "tags": ["unknown", "paid"], "website": "https://seliware.com/" },
+    { "name": "JJSploit", "platform": "Windows", "tags": ["unknown"] },
+    { "name": "Solara", "platform": "Windows", "tags": ["warning"], "website": "https://getsolara.dev/" },
+    { "name": "Potassium", "platform": "Windows", "tags": ["recommended", "paid", "works"], "website": "https://www.potassium.pro/" },
+    { "name": "Ronix", "platform": "Windows", "tags": ["works", "keysystem"], "website": "https://ronixstudios.io/" },
+    { "name": "Vega", "platform": "Windows", "tags": ["unknown", "keysystem"], "website": "https://www.vegax.gg/" },
+
+    { "name": "Delta", "platform": "Android", "tags": ["recommended", "works", "keysystem"], "website": "https://deltaexploits.gg/" },
+    { "name": "Codex", "platform": "Android", "tags": ["works"], "website": "https://www.codex.lol/" },
+    { "name": "Ronix", "platform": "Android", "tags": ["works", "keysystem"], "website": "https://ronixstudios.io/" },
+    { "name": "Cryptic", "platform": "Android", "tags": ["unknown", "keysystem"], "website": "https://getcryptic.net/" },
+    { "name": "Bunni", "platform": "Android", "tags": ["unknown"], "website": "https://bunni.fun/" },
+    { "name": "Neutron", "platform": "Android", "tags": ["works", "keysystem"] },
+    { "name": "Vega", "platform": "Android", "tags": ["unknown", "works", "keysystem"], "website": "https://www.vegax.gg/" },
+    { "name": "Velocity", "platform": "Android", "tags": ["works", "keysystem"], "website": "https://realvelocity.xyz/" },
+    { "name": "FluxusZ", "platform": "Android", "tags": ["works", "keysystem"], "website": "https://fluxusz.com/" },
+
+    { "name": "Hydrogen", "platform": "Mac", "tags": [], "website": "https://www.hydrogen.lat/" },
+    { "name": "Macsploit", "platform": "Mac", "tags": ["recommended", "paid"], "website": "https://www.raptor.fun/" },
+
+    { "name": "Delta", "platform": "iOS", "tags": ["recommended", "works", "keysystem"], "website": "https://deltaexploits.gg/" },
+    { "name": "Skibx", "platform": "iOS", "tags": [] },
+    { "name": "Codex", "platform": "iOS", "tags": ["works"], "website": "https://www.codex.lol/" }
+  ]
+}

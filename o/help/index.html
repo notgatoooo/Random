@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Overdrive H Help</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #141821;
+    --panel-2: #1b2030;
+    --border: #262c3d;
+    --text: #e6e8ef;
+    --muted: #9aa3b8;
+    --accent: #7c5cff;
+    --accent-2: #35d0ba;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 600px at 20% -10%, rgba(124,92,255,0.15), transparent 60%),
+                radial-gradient(900px 500px at 100% 0%, rgba(53,208,186,0.10), transparent 60%),
+                var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+    animation: fadeIn 0.5s var(--ease) both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 24px 0;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .dropdown {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .dropdown-trigger {
+    width: 100%;
+    text-align: left;
+    background: var(--panel-2);
+    color: var(--text);
+    border: none;
+    padding: 16px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: inherit;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .dropdown-trigger:focus,
+  .dropdown-trigger:focus-visible,
+  .dropdown-trigger:active { outline: none; }
+
+  .trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .trigger-left i[data-lucide] {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-2);
+    transition: transform 0.3s var(--ease);
+  }
+
+  .dropdown.open > .dropdown-trigger .trigger-left i[data-lucide] {
+    transform: rotate(-8deg) scale(1.1);
+  }
+
+  .chevron {
+    color: var(--muted);
+    display: inline-flex;
+    transition: transform 0.3s var(--ease);
+  }
+
+  .chevron i[data-lucide] {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dropdown.open > .dropdown-trigger .chevron {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s var(--ease);
+    background: var(--panel-2);
+  }
+
+  .dropdown.open > .dropdown-menu {
+    grid-template-rows: 1fr;
+  }
+
+  .dropdown-menu-inner {
+    overflow: hidden;
+    min-height: 0;
+    border-top: 1px solid transparent;
+    transition: border-color 0.3s var(--ease);
+  }
+
+  .dropdown.open > .dropdown-menu > .dropdown-menu-inner {
+    border-top-color: var(--border);
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    background: transparent;
+    font-family: inherit;
+    opacity: 0;
+    transform: translateY(-6px);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > .menu-item,
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > .dropdown {
+    animation: slideIn 0.35s var(--ease) forwards;
+  }
+
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > .dropdown {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  @keyframes slideIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Stagger the items */
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > *:nth-child(1) { animation-delay: 0.05s; }
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > *:nth-child(2) { animation-delay: 0.10s; }
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > *:nth-child(3) { animation-delay: 0.15s; }
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > *:nth-child(4) { animation-delay: 0.20s; }
+  .dropdown.open > .dropdown-menu .dropdown-menu-inner > *:nth-child(5) { animation-delay: 0.25s; }
+
+  .menu-item:last-child { border-bottom: none; }
+
+  .item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .item-left i[data-lucide] {
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+  }
+
+  .arrow {
+    color: var(--muted);
+    display: inline-flex;
+  }
+
+  .arrow i[data-lucide] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .nested {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none !important;
+  }
+
+  .nested > .dropdown-trigger {
+    background: transparent;
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .nested > .dropdown-menu {
+    background: transparent;
+  }
+
+  .nested .dropdown-menu-inner { border-top: 1px solid transparent; }
+  .nested.open > .dropdown-menu > .dropdown-menu-inner { border-top-color: var(--border); }
+
+  .nested .menu-item {
+    padding-left: 44px;
+    font-size: 13px;
+  }
+
+  .dropdown-trigger:active { transform: scale(0.995); }
+
+  @media (max-width: 480px) {
+    body { padding: 24px 14px; }
+    h1 { font-size: 22px; margin-bottom: 18px; }
+    .dropdown-trigger { padding: 14px 16px; font-size: 14px; }
+    .menu-item { padding: 13px 16px; font-size: 13px; }
+    .nested .menu-item { padding-left: 38px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Overdrive H Help</h1>
+
+    <div class="dropdown" id="mainDropdown">
+      <button class="dropdown-trigger" onclick="toggleDropdown(event, 'mainDropdown')">
+        <span class="trigger-left">
+          <span>Select a help topic</span>
+        </span>
+        <span class="chevron"><i data-lucide="chevron-down"></i></span>
+      </button>
+
+      <div class="dropdown-menu">
+        <div class="dropdown-menu-inner">
+
+          <a class="menu-item" href="https://random.getunx.cc/o/help/articles/verify" target="_blank" rel="noopener">
+            <span class="item-left">
+              <i data-lucide="badge-question-mark"></i>
+              <span>Verify Help</span>
+            </span>
+            <span class="arrow"><i data-lucide="arrow-up-right"></i></span>
+          </a>
+
+          <a class="menu-item" href="https://random.getunx.cc/o/help/articles/key_system" target="_blank" rel="noopener">
+            <span class="item-left">
+              <i data-lucide="key"></i>
+              <span>Key System Help</span>
+            </span>
+            <span class="arrow"><i data-lucide="arrow-up-right"></i></span>
+          </a>
+
+          <a class="menu-item" href="https://random.getunx.cc/o/help/articles/executors" target="_blank" rel="noopener">
+            <span class="item-left">
+              <i data-lucide="terminal"></i>
+              <span>Supported Executors</span>
+            </span>
+            <span class="arrow"><i data-lucide="arrow-up-right"></i></span>
+          </a>
+
+          <div class="dropdown nested" id="featuresDropdown">
+            <button class="dropdown-trigger" onclick="toggleDropdown(event, 'featuresDropdown')">
+              <span class="trigger-left">
+                <span>Premium/Exclusive Features</span>
+              </span>
+              <span class="chevron"><i data-lucide="chevron-down"></i></span>
+            </button>
+            <div class="dropdown-menu">
+              <div class="dropdown-menu-inner">
+                <a class="menu-item" href="https://random.getunx.cc/o/help/articles/features/premium" target="_blank" rel="noopener">
+                  <span class="item-left">
+                    <i data-lucide="gem"></i>
+                    <span>Premium</span>
+                  </span>
+                  <span class="arrow"><i data-lucide="arrow-up-right"></i></span>
+                </a>
+                <a class="menu-item" href="https://random.getunx.cc/o/help/articles/features/exclusive" target="_blank" rel="noopener">
+                  <span class="item-left">
+                    <i data-lucide="star"></i>
+                    <span>Exclusive</span>
+                  </span>
+                  <span class="arrow"><i data-lucide="arrow-up-right"></i></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <a class="menu-item" href="https://random.getunx.cc/o/help/articles/content_creator" target="_blank" rel="noopener">
+            <span class="item-left">
+              <i data-lucide="video"></i>
+              <span>Content Creator Requirements</span>
+            </span>
+            <span class="arrow"><i data-lucide="arrow-up-right"></i></span>
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  lucide.createIcons();
+
+  function toggleDropdown(event, id) {
+    event.stopPropagation();
+    const el = document.getElementById(id);
+    el.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

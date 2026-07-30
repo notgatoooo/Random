@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Wall of Shame</title>
+<link rel="icon" href="https://random.getunx.cc/Assets/wos.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Wall of Shame" />
+<meta property="og:image" content="https://random.getunx.cc/Assets/wos.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Wall of Shame" />
+<meta name="twitter:image" content="https://random.getunx.cc/Assets/wos.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  background:#050505;
+  color:#fff;
+  font-family:'Open Sans',sans-serif;
+  overflow-x:hidden;
+}
+
+#scroll-progress{
+  position:fixed;
+  top:0;left:0;
+  height:3px;
+  width:0%;
+  background:linear-gradient(90deg,#2aa7ff,#7fd4ff);
+  z-index:50;
+}
+
+#scene{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+
+.ball{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(90px);
+  opacity:.85;
+}
+
+.wrap{
+  position:relative;
+  z-index:10;
+  max-width:900px;
+  margin:0 auto;
+  padding:6vh 20px 40px;
+}
+
+header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+  margin-bottom:30px;
+}
+
+.title-img{
+  width:360px;
+  max-width:90%;
+  height:auto;
+  filter:drop-shadow(0 10px 35px rgba(0,0,0,.7));
+}
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+}
+
+.search{
+  flex:1 1 180px;
+  max-width:200px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  color:white;
+  ::placeholder { color: #fff; opacity: 1; }
+  backdrop-filter:blur(14px);
+}
+
+.audio-toggle{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);
+  backdrop-filter:blur(16px);
+  cursor:pointer;
+}
+
+.audio-toggle svg{
+  width:22px;
+  height:22px;
+  fill:white;
+}
+
+.filter-select{
+  flex:1 1 140px;
+  max-width:150px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  color:white;
+  backdrop-filter:blur(14px);
+  appearance:none;
+  cursor:pointer;
+}
+
+.wall-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:14px;
+}
+
+.user-card{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  height:84px;
+  padding:12px;
+  border-radius:16px;
+  text-decoration:none;
+  color:white;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(18px);
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+  opacity:0;
+  transform:translateY(14px);
+  transition:.25s;
+}
+
+.user-card.in-view{
+  opacity:1;
+  transform:none;
+}
+
+.user-card:hover{
+  transform:translateY(-6px) scale(1.02);
+}
+
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,.2);
+  background:#000;
+}
+
+.display-name{
+  font-weight:700;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.handle{
+  font-size:13px;
+  font-family:monospace;
+  color:rgba(255,255,255,.7);
+  margin-top:4px;
+}
+
+footer{
+  margin-top:30px;
+  text-align:center;
+  font-size:13px;
+  color:rgba(255,255,255,.6);
+}
+</style>
+</head>
+<body>
+
+<div id="scroll-progress"></div>
+<div id="scene"></div>
+
+<div class="wrap">
+  <header>
+    <img src="https://random.getunx.cc/Assets/wos.png" class="title-img">
+    <div class="controls">
+      <input id="search" class="search" placeholder="Search...">
+      <select id="filter" class="filter-select">
+        <option value="original">Original</option>
+        <option value="newest">Newest to Oldest</option>
+        <option value="oldest">Oldest to Newest</option>
+        <option value="alpha">Alphabetical A-Z</option>
+        <option value="reverse">Alphabetical Z-A</option>
+      </select>
+      <button id="audio-toggle" class="audio-toggle">
+        <svg id="audio-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="wall-grid" id="wall"></div>
+
+  <footer>Made by Gato (@not_.gato)</footer>
+</div>
+
+<audio id="bg-audio" src="https://random.getunx.cc/Assets/747953.mp3" autoplay loop muted playsinline></audio>
+
+<script>
+const users=[
+{name:"Juju",handle:"@juuly0867",icon:"http://random.getunx.cc/Assets/a_2f4660911f50c3958b15f603ee62febf.gif",id:"1183776221302104097"},
+];
+
+const wall=document.getElementById("wall");
+const search=document.getElementById("search");
+const filter=document.getElementById("filter");
+let originalUsers=[...users];
+
+function render(list){
+  wall.innerHTML="";
+  list.forEach(u=>{
+    const a=document.createElement("a");
+    a.className="user-card";
+    a.href=u.id!=="0"?`https://discord.com/users/${u.id}`:"#";
+    a.target="_blank";
+    a.innerHTML=`
+      <img class="avatar" src="${u.icon}">
+      <div>
+        <div class="display-name">${u.name}</div>
+        <div class="handle">${u.handle}</div>
+      </div>
+    `;
+    wall.appendChild(a);
+    requestAnimationFrame(()=>a.classList.add("in-view"));
+  });
+}
+
+function applyFilters(){
+  let filtered=[...originalUsers];
+  const q=search.value.toLowerCase();
+  filtered=filtered.filter(u=>(u.name+u.handle).toLowerCase().includes(q));
+  switch(filter.value){
+    case "newest": filtered.reverse(); break;
+    case "oldest": break;
+    case "alpha": filtered.sort((a,b)=>a.name.localeCompare(b.name)); break;
+    case "reverse": filtered.sort((a,b)=>b.name.localeCompare(a.name)); break;
+  }
+  render(filtered);
+}
+
+search.oninput=applyFilters;
+filter.onchange=applyFilters;
+
+render(users);
+
+const progress=document.getElementById("scroll-progress");
+addEventListener("scroll",()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+"%";
+});
+
+const scene=document.getElementById("scene");
+const colors=["#ff0055","#00ff99","#00ccff","#ffea00","#9d00ff","#ff4d00"];
+colors.forEach(c=>{
+  const b=document.createElement("div");
+  b.className="ball";
+  const s=420+Math.random()*300;
+  b.style.width=b.style.height=s+"px";
+  b.style.background=c;
+  b.style.left=Math.random()*100+"%";
+  b.style.top=Math.random()*100+"%";
+  scene.appendChild(b);
+});
+
+const audio=document.getElementById("bg-audio");
+const toggle=document.getElementById("audio-toggle");
+const icon=document.getElementById("audio-icon");
+
+toggle.onclick=async()=>{
+  if(audio.paused){
+    audio.muted=false;
+    await audio.play().catch(()=>{});
+    icon.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+  }else{
+    audio.pause();
+    icon.innerHTML='<path d="M8 5v14l11-7z"/>';
+  }
+};
+</script>
+</body>
+</html>

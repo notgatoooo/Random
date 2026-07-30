@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Overdrive H Help</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #141821;
+    --panel-2: #1b2030;
+    --border: #262c3d;
+    --text: #e6e8ef;
+    --muted: #9aa3b8;
+    --accent: #7c5cff;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background:
+      radial-gradient(900px 500px at 20% -10%, rgba(124,92,255,0.16), transparent 58%),
+      radial-gradient(780px 440px at 100% 0%, rgba(53,208,186,0.12), transparent 58%),
+      var(--bg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    animation: fadeIn 0.45s var(--ease) both;
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    border-radius: 999px;
+    filter: blur(42px);
+    opacity: 0.28;
+    z-index: 0;
+  }
+
+  body::before {
+    width: 240px;
+    height: 240px;
+    left: -80px;
+    top: 12%;
+    background: rgba(124, 92, 255, 0.22);
+    animation: drift1 11s var(--ease) infinite alternate;
+  }
+
+  body::after {
+    width: 200px;
+    height: 200px;
+    right: -70px;
+    top: 34%;
+    background: rgba(53, 208, 186, 0.18);
+    animation: drift2 13s var(--ease) infinite alternate;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes drift1 {
+    from { transform: translateY(0) scale(1); }
+    to { transform: translateY(24px) scale(1.08); }
+  }
+
+  @keyframes drift2 {
+    from { transform: translateY(0) scale(1); }
+    to { transform: translateY(-20px) scale(1.06); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: min(860px, calc(100vw - 32px));
+    height: min(860px, calc(100dvh - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .title-wrap {
+    flex: 0 0 auto;
+    padding: 2px 2px 0 2px;
+  }
+
+  h1 {
+    margin: 0 0 6px 0;
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .small-text {
+    margin: 0;
+    font-size: clamp(13px, 1.8vw, 15px);
+    color: var(--muted);
+  }
+
+  .panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 24, 33, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  }
+
+  .panel-header {
+    flex: 0 0 auto;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .page-indicator {
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 700;
+    user-select: none;
+    white-space: nowrap;
+    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+
+  .page-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step-page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    opacity: 0;
+    transform: translateX(18px);
+    pointer-events: none;
+  }
+
+  .step-page.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    animation: pageIn 0.32s var(--ease) both;
+  }
+
+  .step-page.leaving-left {
+    animation: pageOutLeft 0.24s var(--ease) both;
+  }
+
+  .step-page.leaving-right {
+    animation: pageOutRight 0.24s var(--ease) both;
+  }
+
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateX(16px); filter: blur(2px); }
+    to { opacity: 1; transform: translateX(0); filter: blur(0); }
+  }
+
+  @keyframes pageOutLeft {
+    from { opacity: 1; transform: translateX(0); filter: blur(0); }
+    to { opacity: 0; transform: translateX(-16px); filter: blur(1px); }
+  }
+
+  @keyframes pageOutRight {
+    from { opacity: 1; transform: translateX(0); filter: blur(0); }
+    to { opacity: 0; transform: translateX(16px); filter: blur(1px); }
+  }
+
+  .step-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 18px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124,92,255,0.45) transparent;
+  }
+
+  .step-scroll::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .step-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .step-scroll::-webkit-scrollbar-thumb {
+    background: rgba(124,92,255,0.35);
+    border: 2px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+
+  .step-content {
+    color: var(--muted);
+    font-size: clamp(13px, 1.7vw, 14px);
+    line-height: 1.6;
+  }
+
+  .step-content p {
+    margin: 0 0 10px 0;
+  }
+
+  .step-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .step-content strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .step-content img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin: 12px 0;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+    transform: translateZ(0);
+    transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  }
+
+  .step-content img:hover {
+    transform: translateY(-2px) scale(1.005);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+  }
+
+  .pagination {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 14px 14px;
+    border-top: 1px solid var(--border);
+    background: linear-gradient(to bottom, rgba(20, 24, 33, 0.22), rgba(20, 24, 33, 0.68));
+  }
+
+  .page-btn {
+    min-width: 96px;
+    padding: 10px 12px;
+    border-radius: 11px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      transform 0.16s var(--ease),
+      background 0.2s var(--ease),
+      border-color 0.2s var(--ease),
+      opacity 0.2s var(--ease),
+      box-shadow 0.2s var(--ease);
+  }
+
+  .page-btn:hover {
+    background: #20273a;
+    border-color: #333a4d;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
+    transform: translateY(-1px);
+  }
+
+  .page-btn:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  .page-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .page-btn.flash {
+    animation: btnFlash 0.22s var(--ease);
+  }
+
+  @keyframes btnFlash {
+    from { transform: scale(0.98); }
+    to { transform: scale(1); }
+  }
+
+  @media (max-width: 720px) {
+    .container {
+      width: min(100%, calc(100vw - 20px));
+      height: min(100dvh - 20px, 860px);
+    }
+
+    .panel {
+      border-radius: 14px;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+    }
+
+    .step-scroll {
+      padding: 16px;
+    }
+
+    .pagination {
+      padding: 10px 12px 12px;
+      gap: 8px;
+    }
+
+    .page-btn {
+      min-width: 86px;
+      padding: 9px 10px;
+      font-size: 12.5px;
+    }
+
+    .page-indicator {
+      font-size: 12.5px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    body {
+      padding: 10px;
+    }
+
+    .container {
+      width: calc(100vw - 20px);
+      height: calc(100dvh - 20px);
+      gap: 10px;
+    }
+
+    .small-text {
+      line-height: 1.35;
+    }
+
+    .panel-header {
+      padding: 12px 14px;
+    }
+
+    .step-scroll {
+      padding: 14px;
+    }
+
+    .pagination {
+      padding: 10px;
+    }
+
+    .page-btn {
+      min-width: 80px;
+      padding: 9px 10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-wrap">
+      <h1>Overdrive H Help</h1>
+      <p class="small-text">Key System Help</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Steps</div>
+        <div class="page-indicator" id="pageIndicator">Page 1 / 4</div>
+      </div>
+
+      <div class="page-stage">
+        <section class="step-page active" data-page="1">
+          <div class="step-scroll">
+            <div class="step-content">
+              <p><strong>1. Getting Key URL</strong></p>
+              <p>To get the <strong>Key URL</strong>, you need to first execute <strong>Overdrive H</strong>. Once you do that, you need to click the <strong>GET</strong> button on the left side of the UI.</p>
+              <img src="https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/help/a/key_system/key1.png" alt="Key URL step 1" loading="lazy">
+            </div>
+          </div>
+        </section>
+
+        <section class="step-page" data-page="2">
+          <div class="step-scroll">
+            <div class="step-content">
+              <p><strong>2. Doing The Key</strong></p>
+              <p>Once you get the <strong>Key URL</strong> on <strong>Overdrive H</strong> UI, you'll want to go into a browser (you're probably in one right now) and paste that link in there. You should see something like this page:</p>
+              <img src="https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/help/a/key_system/key2.png" alt="Key system page" loading="lazy">
+              <p>Once you see this page, click the <strong>Add Credits</strong> button/text.</p>
+              <img src="https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/help/a/key_system/key3.png" alt="Add Credits button" loading="lazy">
+            </div>
+          </div>
+        </section>
+
+        <section class="step-page" data-page="3">
+          <div class="step-scroll">
+            <div class="step-content">
+              <p><strong>3. Doing The Linkvertise</strong></p>
+              <p>Once you have successfully clicked the button, you should go to the URL: <strong>https://linkvertise.com/...</strong>; if not, go back to the key system page and click again. Once you get to that page, click the <strong>Get Link</strong> button.</p>
+              <img src="https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/help/a/key_system/key4.png" alt="Linkvertise Get Link" loading="lazy">
+              <p>Once done, select the <strong>Watch Ads</strong> option. Once done, click <strong>Continue</strong>. Now you should see something like the image below. If yes, just click <strong>Skip Ad</strong> button.</p>
+              <img src="https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/help/a/key_system/key5.png" alt="Skip Ad button" loading="lazy">
+              <p>Until you get to this page where you will want to click the <strong>Open</strong> button, which should automatically redirect you back to the key system, and you've got your <strong>First</strong> credit!</p>
+              <img src="https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/help/a/key_system/key6.png" alt="Open redirect page" loading="lazy">
+            </div>
+          </div>
+        </section>
+
+        <section class="step-page" data-page="4">
+          <div class="step-scroll">
+            <div class="step-content">
+              <p><strong>4. Rest To-Do</strong></p>
+              <p>You will have to <strong>repeat</strong> this step if you want to get more <strong>key time</strong>. The minimum is <strong>2 credits</strong> for <strong>6 hours</strong> of key system; the maximum is <strong>21 credits</strong> for <strong>14 days</strong> of key system.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="pagination">
+        <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)">Previous</button>
+        <button class="page-btn" id="nextPageBtn" onclick="changePage(1)">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const totalPages = 4;
+    let currentPage = 1;
+    let pageLock = false;
+
+    function refreshButtons() {
+      const prevBtn = document.getElementById("prevPageBtn");
+      const nextBtn = document.getElementById("nextPageBtn");
+      const pageIndicator = document.getElementById("pageIndicator");
+
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+      pageIndicator.textContent = `Page ${currentPage} / ${totalPages}`;
+    }
+
+    function showPage(nextPage, direction) {
+      if (pageLock || nextPage < 1 || nextPage > totalPages || nextPage === currentPage) return;
+
+      pageLock = true;
+
+      const pages = Array.from(document.querySelectorAll(".step-page"));
+      const currentEl = pages.find((el) => Number(el.dataset.page) === currentPage);
+      const nextEl = pages.find((el) => Number(el.dataset.page) === nextPage);
+
+      if (!nextEl) {
+        pageLock = false;
+        return;
+      }
+
+      if (currentEl) {
+        currentEl.classList.remove("active");
+        currentEl.classList.add(direction > 0 ? "leaving-left" : "leaving-right");
+        setTimeout(() => {
+          currentEl.classList.remove("leaving-left", "leaving-right");
+        }, 240);
+      }
+
+      currentPage = nextPage;
+
+      setTimeout(() => {
+        nextEl.classList.add("active");
+        refreshButtons();
+
+        const prevBtn = document.getElementById("prevPageBtn");
+        const nextBtn = document.getElementById("nextPageBtn");
+        prevBtn.classList.remove("flash");
+        nextBtn.classList.remove("flash");
+        void prevBtn.offsetWidth;
+        void nextBtn.offsetWidth;
+        prevBtn.classList.add("flash");
+        nextBtn.classList.add("flash");
+
+        setTimeout(() => {
+          prevBtn.classList.remove("flash");
+          nextBtn.classList.remove("flash");
+          pageLock = false;
+        }, 240);
+      }, 90);
+    }
+
+    function changePage(direction) {
+      showPage(currentPage + direction, direction);
+    }
+
+    refreshButtons();
+  </script>
+</body>
+</html>

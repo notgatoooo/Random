@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Icon Maker :)</title>
+  <style>
+    :root {
+      --text: #e9ecff;
+      --muted: #aab2da;
+      --accent: #6ea8fe;
+      --border: rgba(255,255,255,0.10);
+      --ok: #34d399;
+      --err: #f87171;
+      --card: rgba(31,41,55,0.5);
+      --selected-outline: #0077FF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background-image: url("https://i.pinimg.com/originals/55/01/60/5501609ee45d514d1f2c4a63502045e2.gif");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1300px, 100%);
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 420px 1fr;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(4px);
+      transition: transform 0.12s ease, outline-color 0.12s ease;
+      outline: 2px solid transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .controls {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    h1 { font-size: 1.45rem; }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .field { display: grid; gap: 6px; }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      padding: 11px 18px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      font-size: 0.92rem;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+    }
+
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    button:focus,
+    button:active {
+      outline: none;
+      box-shadow: none;
+    }
+
+    input {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      box-shadow: none;
+    }
+
+    .status {
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .status.success { color: var(--ok); }
+    .status.error   { color: var(--err); }
+
+    .script-section { display: none; }
+    .script-section.visible { display: grid; gap: 8px; }
+
+    .script-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .script-header span { font-size: 0.88rem; color: var(--muted); }
+
+    .copy-btn {
+      padding: 5px 13px;
+      font-size: 0.8rem;
+      background: transparent;
+      border: 1px solid rgba(110,168,254,0.35);
+      color: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover { background: rgba(110,168,254,0.1); }
+    .copy-btn.copied { color: var(--ok); border-color: var(--ok); }
+
+    .code-block {
+      width: 100%;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 14px;
+      overflow-x: auto;
+      min-height: 240px;
+    }
+
+    .code-block pre {
+      font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      white-space: pre;
+      margin: 0;
+    }
+
+    .lua-raw { display: none; }
+
+    .t-kw   { color: #c792ea; }
+    .t-str  { color: #c3e88d; }
+    .t-cmt  { color: #546e7a; font-style: italic; }
+    .t-num  { color: #f78c6c; }
+    .t-fn   { color: #82aaff; }
+    .t-op   { color: #89ddff; }
+    .t-id   { color: #e9ecff; }
+    .t-prop { color: #ffcb6b; }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .slot {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      transition: transform 0.12s ease, outline-color 0.12s ease;
+      outline: 2px solid transparent;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .slot.selected {
+      transform: scale(1.01);
+      outline-color: var(--selected-outline);
+    }
+
+    .slot-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .slot-title span {
+      font-size: 0.84rem;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.15);
+      padding: 10px;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: block;
+    }
+
+    .slot-name {
+      font-size: 0.78rem;
+      color: var(--muted);
+      word-break: break-all;
+      min-height: 18px;
+    }
+
+    .global-slot {
+      margin-top: 4px;
+    }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      .controls { max-height: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <section class="card controls" id="controlsCard">
+    <h1>Icon Maker</h1>
+    <p>Upload the icons you want to replace. Leave any slot empty and it will be skipped in the final Luau script.</p>
+
+    <div class="field">
+      <div class="status">Ready...</div>
+    </div>
+
+    <div id="scriptSection" class="script-section">
+      <div class="script-header">
+        <span>LUAU Script</span>
+        <button class="copy-btn" id="copyBtn">Copy</button>
+      </div>
+      <div class="code-block">
+        <pre id="luaHighlighted"></pre>
+      </div>
+      <textarea class="lua-raw" id="luaRaw" readonly></textarea>
+    </div>
+
+    <div class="row">
+      <button id="generateBtn" disabled>Generate</button>
+      <button id="clearBtn" class="secondary">Clear</button>
+    </div>
+
+    <div id="statusBox" class="status">ok!</div>
+
+    <div class="slot-grid" id="slotGrid"></div>
+  </section>
+</div>
+
+<script>
+const ICONS = [
+  "title.png",
+  "world.png",
+  "money.png",
+  "mastery.png",
+  "puzzle.png",
+  "combat.png",
+  "eye.png",
+  "creation_date.png",
+  "diamond.png",
+  "glowing_star.png",
+  "cogwheel.png",
+  "house.png",
+  "star.png",
+  "octagon.png",
+  "heart.png",
+  "square.png",
+  "circle.png",
+  "play.png",
+  "search.png",
+  "check.png",
+  "warn.png",
+  "error.png",
+  "info.png",
+  "loading.png",
+  "down.png",
+  "user.png",
+  "icon.png",
+  "placeholder.png",
+  "arrow_down_right.png",
+  "star_filled.png",
+  "navigate_back.png",
+  "wifi.png",
+  "lightning.png"
+];
+
+const BASE_FOLDER = "Ixry Shizuka/assets";
+const BASE_ICON_URL = "https://raw.githubusercontent.com/not-gato/Random/refs/heads/main/o/assets/defaults/";
+const UPLOAD = "https://tmpfiles.org/api/v1/upload";
+
+const slotGrid       = document.getElementById("slotGrid");
+const generateBtn    = document.getElementById("generateBtn");
+const clearBtn       = document.getElementById("clearBtn");
+const statusBox      = document.getElementById("statusBox");
+const scriptSection  = document.getElementById("scriptSection");
+const luaHighlighted = document.getElementById("luaHighlighted");
+const luaRaw         = document.getElementById("luaRaw");
+const copyBtn        = document.getElementById("copyBtn");
+
+const selectedFiles = new Map();
+let selectedItem = null;
+let globalFile = null;
+let globalInput = null;
+
+function defaultIconSrc(iconName) {
+  return BASE_ICON_URL + iconName;
+}
+
+function luaHighlight(code) {
+  const tokens = [];
+  let i = 0;
+  const len = code.length;
+
+  while (i < len) {
+    if (code[i] === "-" && code[i + 1] === "-") {
+      let end = code.indexOf("\n", i);
+      if (end === -1) end = len;
+      tokens.push({ type: "cmt", val: code.slice(i, end) });
+      i = end;
+      continue;
+    }
+
+    if (code[i] === '"' || code[i] === "'") {
+      const q = code[i];
+      let j = i + 1;
+      while (j < len) {
+        if (code[j] === "\\") {
+          j += 2;
+          continue;
+        }
+        if (code[j] === q) break;
+        j++;
+      }
+      tokens.push({ type: "str", val: code.slice(i, Math.min(j + 1, len)) });
+      i = Math.min(j + 1, len);
+      continue;
+    }
+
+    if (/\d/.test(code[i])) {
+      let j = i;
+      while (j < len && /[\d.xXa-fA-F]/.test(code[j])) j++;
+      tokens.push({ type: "num", val: code.slice(i, j) });
+      i = j;
+      continue;
+    }
+
+    if (/[a-zA-Z_]/.test(code[i])) {
+      let j = i;
+      while (j < len && /\w/.test(code[j])) j++;
+      const word = code.slice(i, j);
+      const kws = ["and","break","do","else","elseif","end","false","for","function","goto","if","in","local","nil","not","or","repeat","return","then","true","until","while"];
+      const bts = ["print","pairs","ipairs","next","type","tostring","tonumber","unpack","select","error","assert","pcall","xpcall","rawget","rawset","setmetatable","getmetatable","require","game","isfolder","makefolder","isfile","delfile","writefile"];
+
+      if (kws.includes(word)) tokens.push({ type: "kw", val: word });
+      else if (bts.includes(word)) tokens.push({ type: "fn", val: word });
+      else if (code[j] === "(") tokens.push({ type: "fn", val: word });
+      else if (i > 0 && code[i - 1] === ".") tokens.push({ type: "prop", val: word });
+      else tokens.push({ type: "id", val: word });
+
+      i = j;
+      continue;
+    }
+
+    if (/[+\-*/%^#&|~<>=(){}[\],.:]/.test(code[i])) {
+      tokens.push({ type: "op", val: code[i] });
+      i++;
+      continue;
+    }
+
+    tokens.push({ type: "id", val: code[i] });
+    i++;
+  }
+
+  return tokens.map(t => {
+    const safe = t.val
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return `<span class="t-${t.type}">${safe}</span>`;
+  }).join("");
+}
+
+function setStatus(msg, kind = "") {
+  statusBox.className = kind ? `status ${kind}` : "status";
+  statusBox.textContent = msg;
+}
+
+function showScript(code) {
+  luaRaw.value = code;
+  luaHighlighted.innerHTML = luaHighlight(code);
+  scriptSection.classList.add("visible");
+}
+
+function hideScript() {
+  scriptSection.classList.remove("visible");
+  luaRaw.value = "";
+  luaHighlighted.innerHTML = "";
+}
+
+function updateGenerateState() {
+  generateBtn.disabled = selectedFiles.size === 0 && !globalFile;
+}
+
+function isPngFile(file) {
+  const nameOk = /\.png$/i.test(file.name || "");
+  const typeOk = file.type === "image/png" || file.type === "";
+  return nameOk || typeOk;
+}
+
+function selectItem(el) {
+  if (selectedItem && selectedItem !== el) {
+    selectedItem.classList.remove("selected");
+  }
+  selectedItem = el;
+  if (selectedItem) {
+    selectedItem.classList.add("selected");
+  }
+}
+
+function formatDuration(ms) {
+  ms = Math.max(0, Math.round(ms));
+  const totalSec = Math.floor(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return `${min}:${String(sec).padStart(2, "0")}`;
+}
+
+function makeEtaText(done, total, avgMs) {
+  const remaining = total - done;
+  if (remaining <= 0 || !Number.isFinite(avgMs) || avgMs <= 0) return "";
+  return ` ~ ${formatDuration(avgMs * remaining)} left`;
+}
+
+function makeSlot(iconName) {
+  const wrap = document.createElement("div");
+  wrap.className = "slot";
+  wrap.dataset.icon = iconName;
+
+  wrap.innerHTML = `
+    <div class="slot-title">
+      <span>${iconName}</span>
+    </div>
+    <img class="thumb" src="${defaultIconSrc(iconName)}" alt="${iconName} preview">
+    <input type="file" accept=".png,image/png" />
+    <div class="slot-name">No file selected</div>
+  `;
+
+  const input = wrap.querySelector("input");
+  const thumb = wrap.querySelector(".thumb");
+  const nameEl = wrap.querySelector(".slot-name");
+
+  wrap.addEventListener("click", (e) => {
+    if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+      selectItem(wrap);
+    }
+  });
+
+  input.addEventListener("change", () => {
+    selectItem(wrap);
+
+    const file = input.files && input.files[0] ? input.files[0] : null;
+
+    if (!file) {
+      selectedFiles.delete(iconName);
+      nameEl.textContent = "No file selected";
+      thumb.src = defaultIconSrc(iconName);
+      updateGenerateState();
+      return;
+    }
+
+    if (!isPngFile(file)) {
+      input.value = "";
+      selectedFiles.delete(iconName);
+      nameEl.textContent = "PNG only";
+      thumb.src = defaultIconSrc(iconName);
+      setStatus(`${iconName} must be a PNG file.`, "error");
+      updateGenerateState();
+      return;
+    }
+
+    selectedFiles.set(iconName, file);
+    nameEl.textContent = file.name;
+    setStatus(`${iconName} loaded.`, "success");
+    hideScript();
+    updateGenerateState();
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      thumb.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  return wrap;
+}
+
+function makeGlobalSlot() {
+  const wrap = document.createElement("div");
+  wrap.className = "slot global-slot";
+  wrap.dataset.icon = "Global";
+
+  wrap.innerHTML = `
+    <div class="slot-title">
+      <span>Global</span>
+    </div>
+    <img class="thumb" src="${defaultIconSrc("title.png")}" alt="Global preview">
+    <input type="file" accept=".png,image/png" />
+    <div class="slot-name">No file selected</div>
+  `;
+
+  const input = wrap.querySelector("input");
+  const thumb = wrap.querySelector(".thumb");
+  const nameEl = wrap.querySelector(".slot-name");
+  globalInput = input;
+
+  wrap.addEventListener("click", (e) => {
+    if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+      selectItem(wrap);
+    }
+  });
+
+  input.addEventListener("change", () => {
+    selectItem(wrap);
+
+    const file = input.files && input.files[0] ? input.files[0] : null;
+
+    if (!file) {
+      globalFile = null;
+      nameEl.textContent = "No file selected";
+      thumb.src = defaultIconSrc("title.png");
+      updateGenerateState();
+      return;
+    }
+
+    if (!isPngFile(file)) {
+      input.value = "";
+      globalFile = null;
+      nameEl.textContent = "PNG only";
+      thumb.src = defaultIconSrc("title.png");
+      setStatus(`Global must be a PNG file.`, "error");
+      updateGenerateState();
+      return;
+    }
+
+    globalFile = file;
+    nameEl.textContent = file.name;
+    setStatus(`Global loaded. It will apply to every icon.`, "success");
+    hideScript();
+    updateGenerateState();
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      thumb.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  return wrap;
+}
+
+async function uploadFile(file) {
+  const form = new FormData();
+  form.append("file", file, file.name || "icon.png");
+
+  const res = await fetch(UPLOAD, { method: "POST", body: form });
+  if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+
+  const data = await res.json();
+  const url = data?.data?.url;
+  if (!url) throw new Error("No URL returned from upload");
+
+  return url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+}
+
+function buildLua(entries) {
+  const lines = [];
+  lines.push(`local fld = "${BASE_FOLDER}"`);
+  lines.push(``);
+  lines.push(`if not isfolder(fld) then`);
+  lines.push(`\tmakefolder(fld)`);
+  lines.push(`end`);
+  lines.push(``);
+  lines.push(`local function write(file, url)`);
+  lines.push(`\tlocal path = fld .. "/" .. file`);
+  lines.push(`\tif isfile(path) then`);
+  lines.push(`\t\tdelfile(path)`);
+  lines.push(`\tend`);
+  lines.push(`\twritefile(path, game:HttpGet(url))`);
+  lines.push(`end`);
+  lines.push(``);
+
+  for (const entry of entries) {
+    lines.push(`write("${entry.file}", "${entry.url}")`);
+  }
+
+  lines.push(``);
+  lines.push(`game.Players.LocalPlayer:Kick("ok bro start odh")`);
+
+  return lines.join("\n");
+}
+
+function clearAll() {
+  selectedFiles.clear();
+  selectedItem = null;
+  globalFile = null;
+
+  slotGrid.querySelectorAll(".slot").forEach(slot => {
+    slot.classList.remove("selected");
+    const input = slot.querySelector("input");
+    const nameEl = slot.querySelector(".slot-name");
+    const thumb = slot.querySelector(".thumb");
+    const iconName = slot.dataset.icon;
+    if (input) input.value = "";
+    if (nameEl) nameEl.textContent = "No file selected";
+    if (thumb) thumb.src = iconName === "Global" ? defaultIconSrc("title.png") : defaultIconSrc(iconName);
+  });
+
+  hideScript();
+  setStatus("ok!");
+  updateGenerateState();
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    copyBtn.textContent = "Copied!";
+    copyBtn.classList.add("copied");
+    setTimeout(() => {
+      copyBtn.textContent = "Copy";
+      copyBtn.classList.remove("copied");
+    }, 2000);
+  } catch {
+    luaRaw.style.display = "block";
+    luaRaw.select();
+    document.execCommand("copy");
+    luaRaw.style.display = "none";
+  }
+}
+
+for (const icon of ICONS) {
+  slotGrid.appendChild(makeSlot(icon));
+}
+slotGrid.appendChild(makeGlobalSlot());
+
+generateBtn.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  if (selectedFiles.size === 0 && !globalFile) return;
+
+  generateBtn.disabled = true;
+  hideScript();
+
+  try {
+    const entries = [];
+
+    if (globalFile) {
+      setStatus("Uploading... (1/1)");
+      const url = await uploadFile(globalFile);
+      for (const iconName of ICONS) {
+        entries.push({ file: iconName, url });
+      }
+    } else {
+      const total = selectedFiles.size;
+      const uploadTimes = [];
+      let done = 0;
+
+      for (const iconName of ICONS) {
+        if (!selectedFiles.has(iconName)) continue;
+
+        const file = selectedFiles.get(iconName);
+        const start = performance.now();
+        const avgBefore = uploadTimes.length
+          ? uploadTimes.reduce((a, b) => a + b, 0) / uploadTimes.length
+          : 0;
+
+        setStatus(`Uploading... (${done + 1}/${total})${makeEtaText(done, total, avgBefore)}`);
+
+        const url = await uploadFile(file);
+        const elapsed = performance.now() - start;
+
+        uploadTimes.push(elapsed);
+        done += 1;
+        entries.push({ file: iconName, url });
+
+        if (done < total) {
+          const avg = uploadTimes.reduce((a, b) => a + b, 0) / uploadTimes.length;
+          setStatus(`Uploading... (${done}/${total})${makeEtaText(done, total, avg)}`);
+        } else {
+          setStatus(`Uploading... (${done}/${total})`);
+        }
+      }
+    }
+
+    const code = buildLua(entries);
+    showScript(code);
+    setStatus("Done! Copy the script below.", "success");
+  } catch (err) {
+    setStatus(err?.message || "Something went wrong.", "error");
+  } finally {
+    updateGenerateState();
+  }
+});
+
+clearBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  clearAll();
+});
+
+copyBtn.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  if (!luaRaw.value) return;
+  await copyText(luaRaw.value);
+});
+
+clearAll();
+</script>
+</body>
+</html>

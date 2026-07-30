@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Configuration Generator</title>
+<style>
+  :root{
+    --bg:#080a0e;
+    --panel:rgba(18,22,29,.72);
+    --panel-2:#171c24;
+    --border:#222a35;
+    --text:#e7ecf2;
+    --muted:#8a94a3;
+    --accent:#3ba7ff;
+    --accent-2:#1f6fd6;
+    --good:#2fbf71;
+    --bad:#ef4c5a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent;}
+  html{background:var(--bg);
+       background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+       background-size:22px 22px;background-attachment:fixed;background-position:0 0;}
+  body{color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:28px 14px;position:relative;}
+
+  .blob{position:fixed;z-index:-1;border-radius:50%;filter:blur(120px);opacity:.4;pointer-events:none;}
+  .blob.a{width:380px;height:380px;background:#1f6fd6;top:-120px;left:-100px;}
+  .blob.b{width:320px;height:320px;background:#0d3b66;bottom:-120px;right:-80px;opacity:.5;}
+
+  .wrap{width:100%;max-width:640px;position:relative;}
+  header{margin-bottom:24px;}
+  h1{font-size:22px;letter-spacing:.5px;line-height:1.2;}
+
+  .card{background:linear-gradient(145deg,rgba(28,34,44,.78),rgba(14,18,24,.72));
+        border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);
+        padding:20px;margin-bottom:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:0 8px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.35);}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:16px;}
+
+  .reveal{opacity:0;transform:translateY(24px) scale(.98);
+        transition:opacity .6s cubic-bezier(.22,.61,.36,1),transform .6s cubic-bezier(.22,.61,.36,1);will-change:opacity,transform;}
+  .reveal.in{opacity:1;transform:translateY(0) scale(1);}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+  }
+
+  .slider{position:relative;height:44px;margin:12px 2px 4px;touch-action:none;}
+  .track{position:absolute;top:50%;left:0;right:0;height:6px;transform:translateY(-50%);
+         background:linear-gradient(180deg,#0c0f14,#13181f);border-radius:999px;border:1px solid rgba(0,0,0,.5);
+         box-shadow:inset 0 1px 3px rgba(0,0,0,.6),inset 0 -1px 0 rgba(255,255,255,.04);}
+  .fill{position:absolute;top:50%;height:6px;transform:translateY(-50%);
+        background:linear-gradient(90deg,var(--accent-2),var(--accent));border-radius:999px;
+        box-shadow:0 1px 3px rgba(31,111,214,.5),inset 0 1px 0 rgba(255,255,255,.3);}
+  input[type=range]{position:absolute;top:0;left:0;width:100%;height:44px;margin:0;
+        -webkit-appearance:none;appearance:none;background:none;pointer-events:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:all;width:26px;height:26px;
+        border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffffff,#cfd6df);border:3px solid var(--accent);cursor:pointer;
+        box-shadow:0 3px 8px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.9),inset 0 -2px 3px rgba(0,0,0,.25);}
+  input[type=range]::-moz-range-thumb{pointer-events:all;width:26px;height:26px;border-radius:50%;
+        background:radial-gradient(circle at 35% 30%,#ffffff,#cfd6df);border:3px solid var(--accent);cursor:pointer;
+        box-shadow:0 3px 8px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.9),inset 0 -2px 3px rgba(0,0,0,.25);}
+  .scale{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin:0 2px;}
+  .limit{font-size:11px;color:var(--muted);margin-top:10px;}
+
+  .field{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .field label{flex:0 0 96px;font-size:13px;color:var(--muted);}
+  .input-wrap{flex:1;min-width:0;position:relative;display:flex;border-radius:10px;
+        transition:transform .18s cubic-bezier(.22,.61,.36,1);}
+  .input-wrap:focus-within{transform:translateY(-1px);}
+  .input-wrap input{flex:1;min-width:0;background:linear-gradient(180deg,#10141a,#171c24);border:1px solid rgba(255,255,255,.05);color:var(--text);
+        padding:11px 44px 11px 12px;border-radius:10px;font-size:15px;font-variant-numeric:tabular-nums;width:100%;
+        box-shadow:inset 0 1px 3px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.04);
+        outline:none;transition:border-color .2s,box-shadow .2s,background .2s;}
+  .input-wrap input:hover{border-color:rgba(255,255,255,.1);}
+  .input-wrap input:focus{border-color:rgba(59,167,255,.28);background:linear-gradient(180deg,#11161d,#1a2029);
+        box-shadow:inset 0 1px 3px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(59,167,255,.12);}
+  .input-wrap input.flash{animation:valpulse .5s ease;}
+  @keyframes valpulse{
+    0%{box-shadow:inset 0 1px 3px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.04),inset 0 0 0 2px rgba(59,167,255,.35);}
+    100%{box-shadow:inset 0 1px 3px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.04),inset 0 0 0 2px rgba(59,167,255,0);}
+  }
+  .pingfield .input-wrap input{font-weight:700;color:var(--accent);}
+
+  .ico{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:32px;height:32px;
+       display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:9px;
+       color:var(--text);overflow:hidden;
+       background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.02));
+       border:1px solid rgba(255,255,255,.08);
+       backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+       box-shadow:0 2px 6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.3);
+       transition:background .15s,color .2s,box-shadow .15s,transform .12s;}
+  .ico:hover{background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.05));
+       box-shadow:0 3px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.3);}
+  .ico:active{transform:translateY(-50%) scale(.9);
+       box-shadow:0 1px 3px rgba(0,0,0,.5),inset 0 2px 5px rgba(0,0,0,.45);}
+  .ico svg{position:absolute;width:18px;height:18px;
+       transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .22s ease;}
+  .ico svg.hide{opacity:0;transform:scale(.3) rotate(-90deg);}
+  .ico svg.show{opacity:1;transform:scale(1) rotate(0deg);}
+  .ico.ok{color:var(--good);}
+  .ico.err{color:var(--bad);}
+
+  .codebox{position:relative;}
+  .code{background:linear-gradient(180deg,#0a0d12,#0e1218);border:1px solid rgba(0,0,0,.5);border-radius:10px;padding:14px 14px;
+        font-family:'SF Mono',ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.6;
+        overflow-x:auto;white-space:pre;color:#c9d1d9;margin:0;
+        box-shadow:inset 0 1px 4px rgba(0,0,0,.6),inset 0 -1px 0 rgba(255,255,255,.03);}
+  .code .kw{color:#ff7b72;}
+  .code .str{color:#7ee787;}
+  .code .num{color:#79c0ff;}
+  .code .com{color:#8b949e;font-style:italic;}
+  .code .bi{color:#d2a8ff;}
+  .codebox .ico{top:10px;right:10px;transform:none;}
+  .codebox .ico:active{transform:scale(.9);
+        box-shadow:0 1px 3px rgba(0,0,0,.5),inset 0 2px 5px rgba(0,0,0,.45);}
+
+  @media (max-width:480px){
+    .field{flex-wrap:wrap;}
+    .field label{flex:1 0 100%;margin-bottom:-2px;}
+  }
+</style>
+</head>
+<body>
+<div class="blob a"></div>
+<div class="blob b"></div>
+
+<div class="wrap">
+  <header class="reveal">
+    <h1>Revert Configuration Generator</h1>
+  </header>
+
+  <div class="card reveal">
+    <h2>Ping Range</h2>
+    <div class="slider" id="slider">
+      <div class="track"></div>
+      <div class="fill" id="fill"></div>
+      <input type="range" id="low"  min="0" max="350" value="40" step="1" />
+      <input type="range" id="high" min="0" max="350" value="100" step="1" />
+    </div>
+    <div class="scale"><span>0ms</span><span>175ms</span><span>350ms</span></div>
+    <div class="limit">Max range width: <strong>200ms</strong></div>
+
+    <div class="field pingfield" style="margin-top:18px;">
+      <label>Ping Range</label>
+      <div class="input-wrap">
+        <input id="ping-out" readonly />
+        <button class="ico" data-target="ping-out" aria-label="Copy"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h2>Auto Ping Detector</h2>
+    <div class="codebox">
+      <pre class="code" id="lua-view"></pre>
+      <button class="ico" data-raw="lua" aria-label="Copy script"></button>
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h2>Generated Revert Values</h2>
+    <div class="field"><label>Vertical</label><div class="input-wrap"><input id="vertical" readonly><button class="ico" data-target="vertical" aria-label="Copy"></button></div></div>
+    <div class="field"><label>Horizontal</label><div class="input-wrap"><input id="horizontal" readonly><button class="ico" data-target="horizontal" aria-label="Copy"></button></div></div>
+    <div class="field"><label>X Offset</label><div class="input-wrap"><input id="xoff" readonly><button class="ico" data-target="xoff" aria-label="Copy"></button></div></div>
+    <div class="field"><label>Y Offset</label><div class="input-wrap"><input id="yoff" readonly><button class="ico" data-target="yoff" aria-label="Copy"></button></div></div>
+    <div class="field"><label>Z Offset</label><div class="input-wrap"><input id="zoff" readonly><button class="ico" data-target="zoff" aria-label="Copy"></button></div></div>
+    <div class="field"><label>Sim Time</label><div class="input-wrap"><input id="sim" readonly><button class="ico" data-target="sim" aria-label="Copy"></button></div></div>
+    <div class="field"><label>Interval</label><div class="input-wrap"><input id="interval" readonly><button class="ico" data-target="interval" aria-label="Copy"></button></div></div>
+  </div>
+</div>
+
+<script>
+  var MAX_SPREAD = 200;
+  var SLMAX = 350;
+  var slider = document.getElementById('slider');
+  var low = document.getElementById('low');
+  var high = document.getElementById('high');
+  var fill = document.getElementById('fill');
+
+  var ICON = {
+    copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
+
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+  function enforce(changed){
+    var lo = parseInt(low.value,10);
+    var hi = parseInt(high.value,10);
+    if(lo > hi){ if(changed==='low'){hi=lo; high.value=hi;} else {lo=hi; low.value=lo;} }
+    if(hi - lo > MAX_SPREAD){
+      if(changed==='low'){ hi = lo + MAX_SPREAD; high.value = hi; }
+      else { lo = hi - MAX_SPREAD; low.value = lo; }
+    }
+    return {lo:lo, hi:hi};
+  }
+
+  function compute(lo, hi){
+    var p = (lo + hi) / 2;
+    var s = hi - lo;
+    return {
+      vertical:   clamp(Math.round(106 + 0.22 * p), 105, 160),
+      horizontal: clamp(Math.round(108 + 0.30 * p), 105, 168),
+      xoff:       clamp(Math.round(-(3 + 0.095 * p)), -26, -3),
+      yoff:       clamp(Math.round(-(5 + 0.045 * p)), -16, -4),
+      zoff:       -1,
+      sim:        clamp(Math.round(26 + 0.32 * p), 25, 90),
+      interval:   clamp(Math.round(96 + 0.56 * p + 0.06 * s), 100, 233)
+    };
+  }
+
+  function pickNearest(clientX){
+    var rect = slider.getBoundingClientRect();
+    var pct = clamp((clientX - rect.left) / rect.width, 0, 1) * SLMAX;
+    var dLow = Math.abs(pct - parseInt(low.value,10));
+    var dHigh = Math.abs(pct - parseInt(high.value,10));
+    if(dLow <= dHigh){ low.style.zIndex = 3; high.style.zIndex = 2; }
+    else { high.style.zIndex = 3; low.style.zIndex = 2; }
+  }
+  slider.addEventListener('pointerdown', function(e){ pickNearest(e.clientX); });
+
+  function setOut(id, val){
+    var el = document.getElementById(id);
+    var nv = String(val);
+    if(el.value !== nv){
+      el.value = nv;
+      if(!setOut.silent){
+        el.classList.remove('flash');
+        void el.offsetWidth;
+        el.classList.add('flash');
+      }
+    }
+  }
+
+  function render(changed){
+    var r = enforce(changed);
+    fill.style.left = (r.lo / SLMAX * 100) + '%';
+    fill.style.width = ((r.hi - r.lo) / SLMAX * 100) + '%';
+    setOut('ping-out', r.lo + '\u2013' + r.hi + 'ms');
+    var v = compute(r.lo, r.hi);
+    setOut('vertical',   v.vertical);
+    setOut('horizontal', v.horizontal);
+    setOut('xoff',       v.xoff);
+    setOut('yoff',       v.yoff);
+    setOut('zoff',       v.zoff);
+    setOut('sim',        v.sim);
+    setOut('interval',   v.interval);
+  }
+
+  var lastHaptic = {low:null, high:null};
+  function haptic(which, value){
+    if(lastHaptic[which] !== value){
+      lastHaptic[which] = value;
+      if(navigator.vibrate) navigator.vibrate(3);
+    }
+  }
+
+  low.addEventListener('input', function(){ haptic('low', parseInt(low.value,10)); render('low'); });
+  high.addEventListener('input', function(){ haptic('high', parseInt(high.value,10)); render('high'); });
+  
+  var luaScript =
+'local Players = game:GetService("Players")\n' +
+'local Stats = game:GetService("Stats")\n' +
+'local pingItem = Stats.Network.ServerStatsItem["Data Ping"]\n' +
+'local DURATION = 10 -- if you put this higher the ping range will be more precise.\n' +
+'local minPing, maxPing = math.huge, 0\n' +
+'local startTime = os.clock()\n' +
+'while os.clock() - startTime < DURATION do\n' +
+'    local p = math.floor(pingItem:GetValue())\n' +
+'    if p < minPing then minPing = p end\n' +
+'    if p > maxPing then maxPing = p end\n' +
+'    task.wait(0.1)\n' +
+'end\n' +
+'local range = minPing .. "-" .. maxPing .. "ms"\n' +
+'setclipboard(range)\n' +
+'Players.LocalPlayer:Kick("ping sucessfully calculated, you can go back now bud.")';
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function highlight(src){
+    var re = /(--[^\n]*)|("(?:\\.|[^"\\])*")|(\b\d+\.?\d*\b)|(\b(?:local|while|do|end|if|then|else|elseif|for|in|return|function|and|or|not|nil|true|false|break)\b)|(\b(?:game|math|task|os|print|setclipboard|wait|GetService|huge|floor|clock)\b)/g;
+    return esc(src).replace(re, function(m,com,str,num,kw,bi){
+      if(com) return '<span class="com">'+com+'</span>';
+      if(str) return '<span class="str">'+str+'</span>';
+      if(num) return '<span class="num">'+num+'</span>';
+      if(kw)  return '<span class="kw">'+kw+'</span>';
+      if(bi)  return '<span class="bi">'+bi+'</span>';
+      return m;
+    });
+  }
+  
+  function highlightSafe(src){
+    var re = /(--[^\n]*)|("(?:\\.|[^"\\])*")|(\b\d+\.?\d*\b)|(\b(?:local|while|do|end|if|then|else|elseif|for|in|return|function|and|or|not|nil|true|false|break)\b)|(\b(?:game|math|task|os|print|setclipboard|wait|GetService|huge|floor|clock)\b)/g;
+    var out='', last=0, m;
+    while((m=re.exec(src))){
+      out += esc(src.slice(last, m.index));
+      var cls = m[1]?'com':m[2]?'str':m[3]?'num':m[4]?'kw':'bi';
+      out += '<span class="'+cls+'">'+esc(m[0])+'</span>';
+      last = m.index + m[0].length;
+    }
+    out += esc(src.slice(last));
+    return out;
+  }
+  document.getElementById('lua-view').innerHTML = highlightSafe(luaScript);
+  
+  function getValue(btn){
+    if(btn.dataset.raw === 'lua') return luaScript;
+    return document.getElementById(btn.dataset.target).value;
+  }
+  function buildIcons(btn){
+    btn.innerHTML = ICON.copy + ICON.check + ICON.x;
+    var svgs = btn.querySelectorAll('svg');
+    btn._svg = {copy:svgs[0], check:svgs[1], x:svgs[2]};
+    for(var k in btn._svg){ btn._svg[k].classList.add('hide'); }
+    morph(btn,'copy');
+  }
+  function morph(btn, kind){
+    for(var k in btn._svg){
+      var el = btn._svg[k];
+      if(k === kind){ el.classList.remove('hide'); el.classList.add('show'); }
+      else { el.classList.remove('show'); el.classList.add('hide'); }
+    }
+  }
+  document.querySelectorAll('.ico').forEach(function(btn){
+    buildIcons(btn);
+    btn.addEventListener('click', function(){
+      if(btn._busy) return;
+      var text = getValue(btn);
+      var write = navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject();
+      write.then(function(){done('ok','check');}, function(){done('err','x');});
+      function done(cls, icon){
+        btn._busy = true;
+        btn.classList.remove('ok','err');
+        btn.classList.add(cls);
+        morph(btn, icon);
+        setTimeout(function(){
+          btn.classList.remove('ok','err');
+          morph(btn,'copy');
+          btn._busy = false;
+        }, 3000);
+      }
+    });
+  });
+
+  setOut.silent = true;
+  render('high');
+  setOut.silent = false;
+
+  var reveals = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          var el = en.target;
+          el.style.transitionDelay = (el.dataset.delay || 0) + 'ms';
+          el.classList.add('in');
+          io.unobserve(el);
+        }
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -8% 0px'});
+    reveals.forEach(function(el, i){ el.dataset.delay = i * 90; io.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  }
+</script>
+</body>
+</html>

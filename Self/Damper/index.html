@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damper's Personal Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background-color: #000;
+            font-family: 'Outfit', 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 24px 0;
+        }
+
+        .bg-layer {
+            position: fixed;
+            inset: -10%;
+            width: 120%; height: 120%;
+            z-index: 1;
+            background: linear-gradient(135deg, #004d40 0%, #000000 50%, #2b0000 100%);
+            background-size: 400% 400%;
+            will-change: background-position, transform;
+            animation: gradient-shift 15s ease infinite alternate, pulse-zoom 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes gradient-shift {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        @keyframes pulse-zoom {
+            0%   { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        .noise-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+
+        .glass-box {
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(60px) saturate(160%);
+            -webkit-backdrop-filter: blur(60px) saturate(160%);
+            background: rgba(8, 8, 8, 0.52);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-top-color: rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 0 0 1px rgba(0,0,0,0.4),
+                0 8px 32px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+            color: #fff;
+            transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        box-shadow 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .profile-modal {
+            width: 90%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 36px 28px 24px;
+            border-radius: 26px;
+            margin-bottom: 14px;
+        }
+
+        .profile-modal:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 0 0 1px rgba(0,0,0,0.4),
+                0 16px 48px rgba(0, 0, 0, 0.75),
+                0 0 60px rgba(0, 180, 160, 0.08),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .profile-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-halo {
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.5s ease, background 0.5s ease;
+            filter: blur(10px);
+            pointer-events: none;
+        }
+        .halo-online  { background: #43b581; opacity: 0.35; }
+        .halo-idle    { background: #faa61a; opacity: 0.30; }
+        .halo-dnd     { background: #f04747; opacity: 0.30; }
+
+        #pfp {
+            width: 92px; height: 92px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.13);
+            object-fit: cover;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status-dot {
+            position: absolute; bottom: 3px; right: 3px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 3px solid #0a0a0a;
+            z-index: 2;
+            transition: background-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .status-online  { background-color: #43b581; box-shadow: 0 0 10px rgba(67,181,129,0.8); }
+        .status-idle    { background-color: #faa61a; box-shadow: 0 0 10px rgba(250,166,26,0.8); }
+        .status-dnd     { background-color: #f04747; box-shadow: 0 0 10px rgba(240,71,71,0.8); }
+        .status-offline { background-color: #747f8d; box-shadow: none; }
+
+        #username {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            line-height: 1.1;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+            margin-top: 4px;
+        }
+
+        .quote-container {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 0.95rem;
+            font-weight: 300;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.78);
+            line-height: 1.5;
+            max-width: 95%;
+            min-height: 2.9em;
+            margin-bottom: 2px;
+            text-align: center;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 1px;
+            animation: blink 1s step-end infinite;
+            color: rgba(255,255,255,0.45);
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .socials {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px; height: 46px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            text-decoration: none;
+            color: #fff;
+            transition:
+                background 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease;
+        }
+
+        .social-btn img {
+            width: 22px; height: 22px;
+            object-fit: contain;
+            filter: brightness(0.9);
+            transition: filter 0.25s ease;
+        }
+
+        .social-btn:hover {
+            background: rgba(0, 206, 209, 0.15);
+            border-color: rgba(0, 206, 209, 0.45);
+            transform: translateY(-3px) scale(1.08);
+            box-shadow:
+                0 8px 24px rgba(0, 206, 209, 0.2),
+                0 0 0 1px rgba(0, 206, 209, 0.15) inset;
+        }
+        .social-btn:focus,
+        .social-btn:focus-visible,
+        .play-btn:focus,
+        .play-btn:focus-visible { outline: none; }
+
+        .social-btn {
+            position: relative;
+        }
+
+        .social-btn::before {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top-color: rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            padding: 5px 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .social-btn::after {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            border: 5px solid transparent;
+            border-top-color: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .social-btn:hover::before,
+        .social-btn:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .player-modal {
+            width: 90%;
+            max-width: 380px;
+            padding: 14px 18px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .player-modal:hover {
+            transform: translateY(-2px);
+        }
+
+        .album-art {
+            width: 54px; height: 54px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.65);
+            flex-shrink: 0;
+        }
+
+        .player-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            text-align: left;
+            min-width: 0;
+        }
+
+        .track-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-artist {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 300;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.38);
+            margin-top: 2px;
+            margin-bottom: 7px;
+        }
+
+        .seek-container {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            width: 100%;
+        }
+
+        .time-text {
+            font-size: 0.6rem;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            color: rgba(255, 255, 255, 0.5);
+            min-width: 28px;
+            letter-spacing: 0.02em;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.15);
+            cursor: pointer;
+            outline: none;
+            background-image: linear-gradient(
+                to right,
+                rgba(0, 206, 209, 0.85) 0%,
+                rgba(0, 206, 209, 0.85) var(--seek-pct, 0%),
+                rgba(255,255,255,0.15) var(--seek-pct, 0%)
+            );
+            transition: background-image 0.05s linear;
+        }
+        input[type=range]:focus,
+        input[type=range]:focus-visible { outline: none; }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 11px; height: 11px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 6px rgba(0,206,209,0.6);
+            margin-top: 0;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        input[type=range]:hover::-webkit-slider-thumb {
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(0,206,209,0.9);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 11px; height: 11px;
+            border: none;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 6px rgba(0,206,209,0.6);
+        }
+        input[type=range]::-moz-range-track {
+            height: 4px;
+            background: transparent;
+            border-radius: 2px;
+        }
+
+        .play-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: rgba(255,255,255,0.8);
+            padding: 5px;
+            flex-shrink: 0;
+            transition: color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .play-btn:hover { color: #00ced1; transform: scale(1.15); }
+        .play-btn svg { width: 28px; height: 28px; fill: currentColor; display: block; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bg-layer { animation: none; }
+            .cursor   { animation: none; opacity: 1; }
+            .glass-box, .social-btn, .play-btn { transition: none; }
+        }
+
+        @media screen and (max-height: 650px) {
+            body { justify-content: flex-start; overflow-y: auto; padding: 20px 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="noise-layer"></div>
+
+    <div class="glass-box profile-modal">
+        <div class="profile-wrapper">
+            <div id="avatarHalo" class="avatar-halo"></div>
+            <img id="pfp" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="User Avatar">
+            <div id="status" class="status-dot status-offline"></div>
+        </div>
+
+        <div id="username">Loading...</div>
+
+        <div class="quote-container">
+            <span id="typewriter-text"></span><span class="cursor">|</span>
+        </div>
+
+        <div class="socials">
+            <a href="https://roblox.com/users/954012887/profile" target="_blank" rel="noopener noreferrer" class="social-btn" title="Roblox">
+                <img src="http://random.getunx.cc/Assets/%5BCITYPNG.COM%5DHD%20Roblox%20White%20Symbol%20Sign%20Icon%20Logo%20PNG%20-%202000x2000.png" alt="Roblox">
+            </a>
+            <a href="https://steamcommunity.com/profiles/76561199218593406" target="_blank" rel="noopener noreferrer" class="social-btn" title="Steam">
+                <img src="http://random.getunx.cc/Assets/%5BCITYPNG.COM%5DSteam%20White%20Circle%20Icon%20HD%20PNG%20-%201500x1500.png" alt="Steam">
+            </a>
+            <a href="https://www.instagram.com/orejel31" target="_blank" rel="noopener noreferrer" class="social-btn" title="Instagram">
+                <img src="https://filho.wtf/Assets/Logos/instagram.png" alt="Instagram">
+            </a>
+            <a href="https://www.tiktok.com/@damperbiscuit39" target="_blank" rel="noopener noreferrer" class="social-btn" title="TikTok">
+                <img src="https://filho.wtf/Assets/Logos/tiktok.png" alt="TikTok">
+            </a>
+        </div>
+    </div>
+
+    <div class="glass-box player-modal">
+        <img src="https://filho.wtf/Assets/whatdoyouwannaseeherebuddylol.jpg" alt="Album Art" class="album-art">
+
+        <div class="player-info">
+            <div class="track-name">Messages from the Stars</div>
+            <div class="track-artist">By The RAH Band</div>
+            <div class="seek-container">
+                <span id="currTime" class="time-text">0:00</span>
+                <input type="range" id="seekSlider" value="0" min="0" max="100" step="0.1">
+                <span id="durTime" class="time-text">0:00</span>
+            </div>
+        </div>
+
+        <button id="playBtn" class="play-btn" aria-label="Play">
+            <svg id="playIcon"  viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <audio id="audio" src="https://filho.wtf/Assets/Messages%20from%20the%20Stars%20by%20RAH%20band%20pls%20dont%20sue%20me%20bro.mp3" preload="auto"></audio>
+    </div>
+
+    <script>
+        const USER_ID = "686437972286898218";
+
+        async function fetchDiscordData() {
+            try {
+                const res  = await fetch(`https://api.lanyard.rest/v1/users/${USER_ID}`);
+                const json = await res.json();
+                if (!json.success) return;
+
+                const { discord_user: u, discord_status: s } = json.data;
+
+                const avatarUrl = u.avatar
+                    ? `https://cdn.discordapp.com/avatars/${USER_ID}/${u.avatar}.png?size=256`
+                    : `https://cdn.discordapp.com/embed/avatars/${parseInt(u.discriminator || '0') % 5}.png`;
+
+                document.getElementById('pfp').src      = avatarUrl;
+                document.getElementById('username').textContent = u.username;
+
+                const dot  = document.getElementById('status');
+                const halo = document.getElementById('avatarHalo');
+
+                dot.className  = 'status-dot';
+                halo.className = 'avatar-halo';
+
+                if      (s === 'online')  { dot.classList.add('status-online');  halo.classList.add('halo-online'); }
+                else if (s === 'idle')    { dot.classList.add('status-idle');    halo.classList.add('halo-idle');   }
+                else if (s === 'dnd')     { dot.classList.add('status-dnd');     halo.classList.add('halo-dnd');    }
+                else                      { dot.classList.add('status-offline'); }
+            } catch (e) { console.error('Lanyard fetch failed:', e); }
+        }
+
+        fetchDiscordData();
+        setInterval(fetchDiscordData, 30000);
+
+        const TEXT    = 'I use "damperbiscuit39" for everything btw';
+        const el      = document.getElementById('typewriter-text');
+        let   charIdx = 0;
+
+        function typeStep() {
+            if (charIdx < TEXT.length) {
+                el.textContent += TEXT[charIdx++];
+                setTimeout(typeStep, 80);
+            }
+        }
+        setTimeout(typeStep, 600);
+
+        const audio       = document.getElementById('audio');
+        const playBtn     = document.getElementById('playBtn');
+        const playIcon    = document.getElementById('playIcon');
+        const pauseIcon   = document.getElementById('pauseIcon');
+        const seekSlider  = document.getElementById('seekSlider');
+        const currTimeEl  = document.getElementById('currTime');
+        const durTimeEl   = document.getElementById('durTime');
+
+        let isPlaying = false;
+        let isDragging = false;
+
+        audio.volume = 0.5;
+
+        function setPlayState(playing) {
+            isPlaying            = playing;
+            playIcon.style.display  = playing ? 'none'  : 'block';
+            pauseIcon.style.display = playing ? 'block' : 'none';
+            playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+        }
+
+        function formatTime(s) {
+            if (!isFinite(s)) return '0:00';
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function updateSeekFill(pct) {
+            seekSlider.style.setProperty('--seek-pct', pct.toFixed(2) + '%');
+        }
+
+        window.addEventListener('load', () => {
+            audio.play()
+                .then(() => setPlayState(true))
+                .catch(() => setPlayState(false));
+        });
+
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) { audio.pause(); setPlayState(false); }
+            else           { audio.play();  setPlayState(true);  }
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+            if (!isDragging) {
+                seekSlider.value = pct;
+                updateSeekFill(pct);
+            }
+            currTimeEl.textContent = formatTime(audio.currentTime);
+            durTimeEl.textContent  = formatTime(audio.duration);
+        });
+
+        seekSlider.addEventListener('input', () => {
+            isDragging = true;
+            const pct = +seekSlider.value;
+            updateSeekFill(pct);
+            currTimeEl.textContent = formatTime((pct / 100) * (audio.duration || 0));
+        });
+
+        seekSlider.addEventListener('change', () => {
+            audio.currentTime = (seekSlider.value / 100) * (audio.duration || 0);
+            isDragging = false;
+        });
+
+        audio.addEventListener('ended', () => setPlayState(false));
+    </script>
+</body>
+</html>

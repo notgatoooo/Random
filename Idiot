@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://random.getunx.cc/Assets/idiot.png">
+  <meta property="og:image:secure_url" content="https://random.getunx.cc/Assets/idiot.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://random.getunx.cc/Assets/idiot.png">
+</head>
+<body>
+  <img src="https://random.getunx.cc/Assets/idiot.png" alt="">
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>filho</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    #chat {
+      width: 100%;
+      max-width: 500px;
+      height: 300px;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      overflow-y: auto;
+      background: #111;
+    }
+
+    .msg {
+      margin-bottom: 8px;
+    }
+
+    .user {
+      color: #4fc3f7;
+      font-weight: bold;
+    }
+
+    #controls {
+      margin-top: 10px;
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #222;
+      color: white;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      background: white;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>filho w ws 🥀</h2>
+
+  <div id="chat"></div>
+
+  <div id="controls">
+    <input id="username" placeholder="name">
+    <input id="message" placeholder="type message">
+    <button onclick="send()">Send</button>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+
+    function addMessage(user, msg) {
+      const div = document.createElement("div");
+      div.className = "msg";
+      div.innerHTML = `<span class="user">${user}:</span> ${msg}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+
+    const pusher = new Pusher("fd50bc17b3666a1abc96", {
+      cluster: "sa1"
+    });
+
+    const channel = pusher.subscribe("my-channel");
+
+    channel.bind("my-event", data => {
+      addMessage(data.user || "anon", data.msg);
+    });
+    async function send() {
+      const user = document.getElementById("username").value || "anon";
+      const msg = document.getElementById("message").value.trim();
+
+      if (!msg) return;
+
+      await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ user, msg })
+      });
+
+      document.getElementById("message").value = "";
+    }
+    document.getElementById("message").addEventListener("keydown", e => {
+      if (e.key === "Enter") send();
+    });
+
+    addMessage("system", "connected: true");
+  </script>
+
+</body>
+</html>
