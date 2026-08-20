@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overdrive H Addons</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Zalando+Sans+Expanded:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      background-color: #282C34;
+      color: #abb2bf;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .hero-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 45%, rgba(0, 0, 0, 0) 100%);
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 45%, rgba(0, 0, 0, 0) 100%);
+    }
+
+    .hero-bg {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: calc(100% + 20px);
+      height: calc(100% + 20px);
+      background: url('https://filho.wtf/Assets/%40addons/Code.png') center top / cover no-repeat;
+      filter: blur(1.5px);
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      z-index: 100;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+
+    .top-nav-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(40, 44, 52, 0.88);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+    }
+
+    @media (min-width: 768px) {
+      .top-nav {
+        padding: 0 32px;
+      }
+    }
+
+    .brand-wrapper {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 10px;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .title-main {
+      display: inline-block;
+      font-family: 'Zalando Sans Expanded', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1;
+      color: #ffffff;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    .title-sub {
+      display: inline-block;
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 1.55rem;
+      font-weight: 400;
+      line-height: 1;
+      color: #ffffff;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    .hero-spacer {
+      height: 100vh;
+      height: 100dvh;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    .main-container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 16px 80px;
+    }
+
+    .section-block {
+      padding-bottom: 60px;
+      margin-bottom: 60px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 400px;
+    }
+
+    .section-block:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .section-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section-name::before {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 1.1em;
+      border-radius: 4px;
+      background-color: #21252b;
+      flex-shrink: 0;
+    }
+
+    .section-num {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+      font-weight: 400;
+      color: #8b92a0;
+      line-height: 1;
+    }
+
+    .section-title-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3.8vw, 2.4rem);
+      letter-spacing: -0.01em;
+      background: linear-gradient(180deg, #ffffff 40%, #abb2bf 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+
+    .section-text {
+      font-size: clamp(0.95rem, 2vw, 1.05rem);
+      line-height: 1.8;
+      color: #abb2bf;
+      margin-bottom: 20px;
+    }
+
+    .instance-item {
+      padding-bottom: 36px;
+      margin-bottom: 36px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 250px;
+    }
+
+    .instance-item:last-child {
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .instance-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .md-bold {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .serif-text {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 1.18em;
+      color: #e5c07b;
+      letter-spacing: 0.02em;
+    }
+
+    code,
+    pre,
+    .inline-code,
+    .code-block {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .inline-code {
+      display: inline-block;
+      vertical-align: baseline;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88em;
+      background: #21252b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 1px 7px;
+      color: #abb2bf;
+      word-break: break-word;
+    }
+
+    .code-block-wrapper {
+      position: relative;
+      background: #21252b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: #1e2227;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      min-height: 38px;
+      user-select: none;
+    }
+
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .code-toggle-btn {
+      background: transparent;
+      border: none;
+      color: #abb2bf;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      margin: 0;
+      border-radius: 4px;
+      transition: color 0.2s ease;
+    }
+
+    .code-toggle-btn:hover {
+      color: #ffffff;
+    }
+
+    .toggle-icon {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.5;
+      transition: transform 0.2s ease;
+    }
+
+    .code-block-wrapper.collapsed .code-header {
+      border-bottom: none;
+    }
+
+    .code-block-wrapper.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .code-block-wrapper.collapsed .code-block {
+      display: none;
+    }
+
+    .code-block {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.82rem, 1.8vw, 0.92rem);
+      line-height: 1.65;
+      color: #abb2bf;
+      white-space: pre;
+    }
+
+    .tok-keyword {
+      color: #c678dd;
+    }
+
+    .tok-func {
+      color: #61afef;
+    }
+
+    .tok-string {
+      color: #98c379;
+    }
+
+    .tok-var {
+      color: #e5c07b;
+    }
+
+    .tok-param {
+      color: #d19a66;
+    }
+
+    .tok-number {
+      color: #d19a66;
+    }
+
+    .tok-bool {
+      color: #d19a66;
+    }
+
+    @media (min-width: 768px) {
+      .main-container {
+        padding: 40px 24px 120px;
+      }
+
+      .section-block {
+        padding-bottom: 80px;
+        margin-bottom: 80px;
+      }
+
+      .code-block {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero-container">
+    <div class="hero-bg"></div>
+  </div>
+
+  <header class="top-nav" id="topNav">
+    <div class="top-nav-bg" id="topNavBg"></div>
+    <div class="brand-wrapper" id="brandWrapper">
+      <span class="title-main" id="titleMain">Overdrive H</span>
+      <span class="title-sub" id="titleSub">Addons</span>
+    </div>
+  </header>
+
+  <div class="hero-spacer"></div>
+
+  <main class="main-container">
+    <section class="section-block">
+      <h2 class="section-name">
+        <span class="section-num">[1]</span>
+        <span class="section-title-text">Syntax</span>
+      </h2>
+      <p class="section-text">
+        <strong class="md-bold">Overdrive H</strong> Addons syntax is straightforward: <code class="inline-code"><span class="tok-var">odh_shared_plugins</span>.<span class="tok-func">AddSection</span>(<span class="serif-text">"Name"</span>)</code> creates a section container, and instance methods are invoked on that section via <code class="inline-code">section:<span class="tok-func">AddInstance</span>(<span class="serif-text">...</span>)</code>. Here is a basic example:
+      </p>
+      <div class="code-block-wrapper">
+        <div class="code-header">
+          <span class="code-lang">LUAU</span>
+          <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+        <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"My Toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">bool</span>)
+    <span class="tok-keyword">if</span> bool <span class="tok-keyword">then</span>
+    <span class="tok-keyword">else</span>
+    <span class="tok-keyword">end</span>
+<span class="tok-keyword">end</span>)</code></pre>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h2 class="section-name">
+        <span class="section-num">[2]</span>
+        <span class="section-title-text">Instances</span>
+      </h2>
+      <p class="section-text">
+        Every UI component created under your section is called an <strong class="md-bold">Instance</strong>. Below are all the instances and utilities available in <strong class="md-bold">Overdrive H</strong>, along with their parameters and how to call them.
+      </p>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Section</h3>
+        <p class="section-text">
+          <strong class="md-bold">Section</strong> creates a new category container for holding all your addon's instances <span class="serif-text">(arg1: string)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Label / TextLabel</h3>
+        <p class="section-text">
+          <strong class="md-bold">Label</strong> (or <strong class="md-bold">TextLabel</strong>) creates static display text for credits, titles, or general information <span class="serif-text">(arg1: string)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Paragraph</h3>
+        <p class="section-text">
+          <strong class="md-bold">Paragraph</strong> displays a multi-line formatted text block with a title and description <span class="serif-text">(arg1: string, arg2: string)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"Important Notice"</span>, <span class="tok-string">"Here is a detailed description of the addon features."</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Toggle</h3>
+        <p class="section-text">
+          <strong class="md-bold">Toggle</strong> switches between active and inactive states, passing a boolean <code class="inline-code"><span class="tok-param">bool</span></code> to its callback <span class="serif-text">(arg1: string, arg2: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">bool</span>)
+    <span class="tok-keyword">if</span> bool <span class="tok-keyword">then</span>
+        <span class="tok-func">print</span>(<span class="tok-string">"Toggled On"</span>)
+    <span class="tok-keyword">else</span>
+        <span class="tok-func">print</span>(<span class="tok-string">"Toggled Off"</span>)
+    <span class="tok-keyword">end</span>
+<span class="tok-keyword">end</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Slider</h3>
+        <p class="section-text">
+          <strong class="md-bold">Slider</strong> provides an adjustable number bar with minimum, maximum, and default integers <span class="serif-text">(arg1: string, arg2: integer, arg3: integer, arg4: integer, arg5: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int</span>)
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
+<span class="tok-keyword">end</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Dropdown</h3>
+        <p class="section-text">
+          <strong class="md-bold">Dropdown</strong> lets the user choose an entry from a table. Returns an instance reference with <code class="inline-code">.Select()</code> and <code class="inline-code">.Change()</code> methods <span class="serif-text">(arg1: string, arg2: table, arg3: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+<span class="tok-keyword">local</span> dropdown = my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
+    shared.<span class="tok-func">Notify</span>(selected, <span class="tok-number">2</span>)
+<span class="tok-keyword">end</span>)
+
+dropdown.Select(<span class="tok-string">"list #2"</span>)
+dropdown.Change({<span class="tok-string">"changed 1"</span>, <span class="tok-string">"changed 2"</span>})</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">PlayerDropdown</h3>
+        <p class="section-text">
+          <strong class="md-bold">PlayerDropdown</strong> creates an automatic player selection dropdown passing the selected Player instance to the callback <span class="serif-text">(arg1: string, arg2: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"make gay"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
+    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" is now a gay person."</span>, <span class="tok-number">1</span>)
+<span class="tok-keyword">end</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">TextBox</h3>
+        <p class="section-text">
+          <strong class="md-bold">TextBox</strong> provides a text input field that passes submitted text to its callback <span class="serif-text">(arg1: string, arg2: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
+    shared.<span class="tok-func">Notify</span>(text)
+<span class="tok-keyword">end</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Button</h3>
+        <p class="section-text">
+          <strong class="md-bold">Button</strong> triggers a direct callback function on click <span class="serif-text">(arg1: string, arg2: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">"button"</span>, <span class="tok-keyword">function</span>()
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"this is a button"</span>, <span class="tok-number">2</span>)
+<span class="tok-keyword">end</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Keybind</h3>
+        <p class="section-text">
+          <strong class="md-bold">Keybind</strong> registers a key that fires an action whenever pressed <span class="serif-text">(arg1: string, arg2: string, arg3: function)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string">"keybind"</span>, <span class="tok-string">"U"</span>, <span class="tok-keyword">function</span>()
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Keybind test"</span>, <span class="tok-number">1</span>)
+<span class="tok-keyword">end</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Colorpicker</h3>
+        <p class="section-text">
+          <strong class="md-bold">Colorpicker</strong> allows picking a custom color, passing a Color3 value to the callback <span class="serif-text">(name: string, default_color: Color3, callback: closure)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"ESP Color"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">0</span>, <span class="tok-number">0</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color</span>)
+end)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Create Hidden Instance</h3>
+        <p class="section-text">
+          <strong class="md-bold">create_hidden_instance</strong> creates an instance completely hidden in non-odh contexts without any trace <span class="serif-text">(arg1: string, arg2: Instance)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+<span class="tok-keyword">local</span> part = shared.<span class="tok-func">create_hidden_instance</span>(<span class="tok-string">"Part"</span>, <span class="tok-var">workspace</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Notifications</h3>
+        <p class="section-text">
+          <strong class="md-bold">Notify</strong> pops up an Overdrive H notification banner with a message and an optional type <span class="serif-text">(text: string, type?: integer)</span>. Types: <code class="inline-code"><span class="tok-number">0</span></code> = Warning, <code class="inline-code"><span class="tok-number">1</span></code> = Error, <code class="inline-code"><span class="tok-number">2</span></code> = Success, <code class="inline-code"><span class="tok-number">3</span></code> = Information.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Addon loaded successfully!"</span>, <span class="tok-number">2</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Kick</h3>
+        <p class="section-text">
+          <strong class="md-bold">kick</strong> invokes the built-in Overdrive H custom player disconnection with an optional reason <span class="serif-text">(reason?: string)</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+shared.<span class="tok-func">kick</span>(<span class="tok-string">"reason"</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Identifiers &amp; User Metadata</h3>
+        <p class="section-text">
+          <strong class="md-bold">Identifiers</strong> provide user tier booleans and environment metadata strings. <code class="inline-code"><span class="tok-var">is_premium_user</span></code>, <code class="inline-code"><span class="tok-var">is_exclusive_user</span></code>, and <code class="inline-code"><span class="tok-var">is_serverbooster_user</span></code> return <span class="serif-text">boolean (true / false)</span>; all other fields return <span class="serif-text">string</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+<span class="tok-func">print</span>(<span class="tok-string">"Premium:"</span>, shared.<span class="tok-var">is_premium_user</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Exclusive:"</span>, shared.<span class="tok-var">is_exclusive_user</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"ServerBooster:"</span>, shared.<span class="tok-var">is_serverbooster_user</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Discord Name:"</span>, shared.<span class="tok-var">discord_name</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Discord ID:"</span>, shared.<span class="tok-var">discord_id</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Executor:"</span>, shared.<span class="tok-var">executor</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"HWID:"</span>, shared.<span class="tok-var">hwid</span>)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h2 class="section-name">
+        <span class="section-num">[3]</span>
+        <span class="section-title-text">Examples</span>
+      </h2>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Full Addon Blueprint</h3>
+        <p class="section-text">
+          A comprehensive blueprint featuring all instances, utilities, notifications, hidden instances, custom kicks, and user metadata checks.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+
+my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>)
+my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"title"</span>, <span class="tok-string">"description"</span>)
+
+my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">bool</span>)
+    <span class="tok-keyword">if</span> bool <span class="tok-keyword">then</span>
+        <span class="tok-func">print</span>(<span class="tok-string">"Toggled On"</span>)
+    <span class="tok-keyword">else</span>
+        <span class="tok-func">print</span>(<span class="tok-string">"Toggled Off"</span>)
+    <span class="tok-keyword">end</span>
+<span class="tok-keyword">end</span>)
+
+my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int</span>)
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
+<span class="tok-keyword">end</span>)
+
+<span class="tok-keyword">local</span> dropdown = my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
+    shared.<span class="tok-func">Notify</span>(selected, <span class="tok-number">2</span>)
+<span class="tok-keyword">end</span>)
+
+my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"make gay"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
+    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" is now a gay person."</span>, <span class="tok-number">1</span>)
+<span class="tok-keyword">end</span>)
+
+my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
+    shared.<span class="tok-func">Notify</span>(text)
+<span class="tok-keyword">end</span>)
+
+my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">"button"</span>, <span class="tok-keyword">function</span>()
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"this is a button"</span>, <span class="tok-number">2</span>)
+<span class="tok-keyword">end</span>)
+
+my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string">"keybind"</span>, <span class="tok-string">"U"</span>, <span class="tok-keyword">function</span>()
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Keybind test"</span>, <span class="tok-number">1</span>)
+<span class="tok-keyword">end</span>)
+
+<span class="tok-keyword">local</span> part = shared.<span class="tok-func">create_hidden_instance</span>(<span class="tok-string">"Part"</span>, <span class="tok-var">workspace</span>)
+
+my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"ESP Color"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">0</span>, <span class="tok-number">0</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color</span>)
+end)
+
+<span class="tok-func">print</span>(<span class="tok-string">"Premium:"</span>, shared.<span class="tok-var">is_premium_user</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Exclusive:"</span>, shared.<span class="tok-var">is_exclusive_user</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"ServerBooster:"</span>, shared.<span class="tok-var">is_serverbooster_user</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Discord Name:"</span>, shared.<span class="tok-var">discord_name</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Discord ID:"</span>, shared.<span class="tok-var">discord_id</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"Executor:"</span>, shared.<span class="tok-var">executor</span>)
+<span class="tok-func">print</span>(<span class="tok-string">"HWID:"</span>, shared.<span class="tok-var">hwid</span>)</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.querySelectorAll('.code-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wrapper = btn.closest('.code-block-wrapper');
+        if (wrapper) {
+          wrapper.classList.toggle('collapsed');
+        }
+      });
+    });
+
+    const topNavBg = document.getElementById('topNavBg');
+    const brandWrapper = document.getElementById('brandWrapper');
+    const titleMain = document.getElementById('titleMain');
+    const titleSub = document.getElementById('titleSub');
+
+    let baseMeasurements = null;
+    let lastProgress = -1;
+
+    function measureLayout() {
+      titleMain.style.transform = 'none';
+      titleSub.style.transform = 'none';
+
+      const mainRect = titleMain.getBoundingClientRect();
+      const subRect = titleSub.getBoundingClientRect();
+
+      baseMeasurements = {
+        mainCenter: { x: mainRect.left + mainRect.width / 2, y: mainRect.top + mainRect.height / 2 },
+        subCenter: { x: subRect.left + subRect.width / 2, y: subRect.top + subRect.height / 2 },
+        mainHeight: mainRect.height,
+        subHeight: subRect.height
+      };
+
+      lastProgress = -1;
+      renderScrollAnimation();
+    }
+
+    function renderScrollAnimation() {
+      if (!baseMeasurements) return;
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const scrollDistance = Math.min(viewportHeight * 0.55, 380);
+      const scrollY = window.scrollY || window.pageYOffset;
+      const progress = Math.min(Math.max(scrollY / scrollDistance, 0), 1);
+
+      if (progress === lastProgress) return;
+      lastProgress = progress;
+
+      const heroScale = viewportWidth < 600 ? 1.8 : 2.5;
+      const currentScale = 1 + (heroScale - 1) * (1 - progress);
+
+      const heroStackGap = 8;
+      const scaledMainHalfH = (baseMeasurements.mainHeight * heroScale) / 2;
+      const scaledSubHalfH = (baseMeasurements.subHeight * heroScale) / 2;
+
+      const heroMainY = viewportHeight / 2 - scaledSubHalfH - heroStackGap / 2;
+      const heroSubY = viewportHeight / 2 + scaledMainHalfH + heroStackGap / 2;
+
+      const deltaMainX = (viewportWidth / 2 - baseMeasurements.mainCenter.x) * (1 - progress);
+      const deltaMainY = (heroMainY - baseMeasurements.mainCenter.y) * (1 - progress);
+
+      const deltaSubX = (viewportWidth / 2 - baseMeasurements.subCenter.x) * (1 - progress);
+      const deltaSubY = (heroSubY - baseMeasurements.subCenter.y) * (1 - progress);
+
+      titleMain.style.transform = `translate3d(${deltaMainX}px, ${deltaMainY}px, 0) scale(${currentScale})`;
+      titleSub.style.transform = `translate3d(${deltaSubX}px, ${deltaSubY}px, 0) scale(${currentScale})`;
+
+      topNavBg.style.opacity = progress;
+    }
+
+    let isTicking = false;
+    window.addEventListener('scroll', () => {
+      if (!isTicking) {
+        requestAnimationFrame(() => {
+          renderScrollAnimation();
+          isTicking = false;
+        });
+        isTicking = true;
+      }
+    }, { passive: true });
+
+    window.addEventListener('resize', measureLayout, { passive: true });
+    window.addEventListener('load', measureLayout);
+    document.addEventListener('DOMContentLoaded', measureLayout);
+
+    if (brandWrapper) {
+      brandWrapper.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  </script>
+
+</body>
+  </html>
