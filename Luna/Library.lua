@@ -1,4 +1,3 @@
-
 local maid = {}
 maid.classname = "Maid"
 maid.__index = maid
@@ -85,35 +84,29 @@ pcall(function() load_str = loadstring end)
 local get_hui = type(gethui) == "function" and gethui or function() return game:GetService("CoreGui") end
 
 local colors = {
-	TitleBar   = Color3.fromRGB(40, 40, 43),
-	Body       = Color3.fromRGB(24, 24, 27),
-	BodyLight  = Color3.fromRGB(34, 34, 38),
-	Border     = Color3.fromRGB(58, 58, 64),
-	Text       = Color3.fromRGB(242, 243, 247),
-	TextDim    = Color3.fromRGB(150, 152, 160),
-	CloseHover = Color3.fromRGB(191, 73, 66),
-	ClosePress = Color3.fromRGB(150, 50, 44),
-	BtnHover   = Color3.fromRGB(49, 50, 55),
-	Accent     = Color3.fromRGB(10, 132, 255),
-	Warning    = Color3.fromRGB(255, 159, 10),
-	Error      = Color3.fromRGB(255, 69, 58),
-	ImageColor = Color3.fromRGB(242, 243, 247),
-	TrafficClose      = Color3.fromRGB(255, 97, 89),
-	TrafficCloseHover = Color3.fromRGB(255, 120, 112),
-	TrafficMin        = Color3.fromRGB(255, 189, 46),
-	TrafficMinHover   = Color3.fromRGB(255, 203, 84),
-	TrafficMax        = Color3.fromRGB(40, 201, 65),
-	TrafficMaxHover   = Color3.fromRGB(74, 217, 97),
+	TitleBar   = Color3.fromRGB(32, 32, 32),
+	Body       = Color3.fromRGB(20, 20, 20),
+	BodyLight  = Color3.fromRGB(28, 28, 28),
+	Border     = Color3.fromRGB(60, 60, 60),
+	Text       = Color3.fromRGB(240, 240, 240),
+	TextDim    = Color3.fromRGB(160, 160, 160),
+	CloseHover = Color3.fromRGB(196, 43, 28),
+	ClosePress = Color3.fromRGB(150, 30, 18),
+	BtnHover   = Color3.fromRGB(55, 55, 55),
+	Accent     = Color3.fromRGB(138, 43, 226),
+	Warning    = Color3.fromRGB(255, 170, 0),
+	Error      = Color3.fromRGB(255, 50, 50),
+	ImageColor = Color3.fromRGB(255, 255, 255),
 }
 
-local titlebar_h = 42
-local btn_w      = 42
-local function TweenOut(duration, style, direction)
-	return TweenInfo.new(duration or 0.2, style or Enum.EasingStyle.Quint, direction or Enum.EasingDirection.Out)
+local titlebar_h = 36
+local btn_w      = 46
+local function TweenOut(duration)
+	return TweenInfo.new(duration or 0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
 end
-local tween      = TweenOut(0.16)
-local tween_open = TweenOut(0.24)
-local tween_tooltip = TweenOut(0.08)
+local tween      = TweenOut(0.2)
+local tween_open = TweenOut(0.3)
+local tween_tooltip = TweenOut(0.1)
 local icons = {
 	Close      = "rbxassetid://100928939627907",
 	Maximize   = "rbxassetid://84623133872179",
@@ -122,10 +115,8 @@ local icons = {
 }
 local default_title  = "LunaUI"
 local default_icon   = ""
-local width  = 560
-local height = 370
-local min_width, min_height = 380, 280
-local max_width, max_height = 1100, 760
+local width  = 520
+local height = 340
 
 local lunahelpers = {}
 local lunamain = {}
@@ -334,17 +325,13 @@ function lunahelpers.AddFeedback(maidObj, element, targetParent)
 	overlay.BackgroundTransparency = 1
 	overlay.BorderSizePixel = 0
 	overlay.ZIndex = targetParent.ZIndex
-	local existingcorner = targetParent:FindFirstChildOfClass("UICorner")
-	local ovcorner = Instance.new("UICorner")
-	ovcorner.CornerRadius = existingcorner and existingcorner.CornerRadius or UDim.new(0, 7)
-	ovcorner.Parent = overlay
 	overlay.Parent = targetParent
 
 	local isHovering, isPressing = false, false
 
 	maidObj:GiveTask(element.MouseEnter:Connect(function()
 		isHovering = true
-		if not isPressing then tweenservice:Create(overlay, tween_tooltip, {BackgroundTransparency = 0.92}):Play() end
+		if not isPressing then tweenservice:Create(overlay, tween_tooltip, {BackgroundTransparency = 0.9}):Play() end
 	end))
 	maidObj:GiveTask(element.MouseLeave:Connect(function()
 		isHovering = false
@@ -435,19 +422,8 @@ function lunalibrary:UpdateTheme(isSmooth)
 					c1 = Color3.new(c1.R * d, c1.G * d, c1.B * d)
 					c2 = Color3.new(c2.R * d, c2.G * d, c2.B * d)
 				end
-				if item.IsFlat then
-					if item.Obj.Parent then
-						if isSmooth then
-							tweenservice:Create(item.Obj, TweenOut(animdur), { BackgroundColor3 = c1 }):Play()
-						else
-							item.Obj.BackgroundColor3 = c1
-						end
-					end
-				elseif isSmooth then
-					lunahelpers.TweenGradient(item.Obj, c1, c2, animdur)
-				else
-					item.Obj.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2) })
-				end
+				if isSmooth then lunahelpers.TweenGradient(item.Obj, c1, c2, animdur)
+				else item.Obj.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2) }) end
 			else
 				tweenservice:Create(item.Obj, TweenOut(animdur), {[item.Prop] = colors[item.ColorName] }):Play()
 			end
@@ -744,34 +720,15 @@ function lunahelpers.RemoveThemeEntries(obj, recursive)
 	lunalibrary.themeableobjects = cleaned
 end
 
-local cornerradii = {
-	CanvasGroup = UDim.new(0, 14),
-	ScrollingFrame = UDim.new(0, 8),
-	Frame = UDim.new(0, 6),
-	TextButton = UDim.new(0, 7),
-	ImageButton = UDim.new(0, 7),
-	TextBox = UDim.new(0, 7),
-}
-
 function lunahelpers.Make(class, props, parent)
 	local obj = Instance.new(class)
-	local corneroverride = nil
 	if props then
-		corneroverride = props._Corner
-		props._Corner = nil
 		for k, v in props do
 			if type(v) == "table" and v.Theme then
 				obj[k] = colors[v.Theme]
 				local t = lunalibrary.themeableobjects; t[#t + 1] = { Obj = obj, Prop = k, ColorName = v.Theme }
 			else obj[k] = v end
 		end
-	end
-	local radius = corneroverride
-	if radius == nil then radius = cornerradii[class] end
-	if radius and radius ~= false then
-		local c = Instance.new("UICorner")
-		c.CornerRadius = radius
-		c.Parent = obj
 	end
 	if parent then obj.Parent = parent end
 	return obj
@@ -787,29 +744,14 @@ end
 function lunahelpers.ApplyGradient(parent, c1, c2, darken)
 	if not parent then return end
 	c1 = c1 or "BodyLight"; c2 = c2 or "Body"
+	parent.BackgroundColor3 = Color3.new(1, 1, 1)
 	local color1, color2 = colors[c1], colors[c2]
 	if darken then
 		color1 = Color3.new(color1.R * darken, color1.G * darken, color1.B * darken)
 		color2 = Color3.new(color2.R * darken, color2.G * darken, color2.B * darken)
 	end
-	parent.BackgroundColor3 = color1
-	local spread = math.abs(color1.R - color2.R) + math.abs(color1.G - color2.G) + math.abs(color1.B - color2.B)
-	if darken and darken >= 0.975 and spread < 0.09 then
-		lunalibrary.themeableobjects[#lunalibrary.themeableobjects + 1] = {
-			Obj = parent, IsGradient = true, IsFlat = true, C1 = c1, C2 = c2, Darken = darken
-		}
-		return nil
-	end
-	local grad = lunahelpers.Make("UIGradient", {
-		Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, color1),
-			ColorSequenceKeypoint.new(1, color2)
-		}),
-		Rotation = 90
-	}, parent)
-	lunalibrary.themeableobjects[#lunalibrary.themeableobjects + 1] = {
-		Obj = grad, IsGradient = true, C1 = c1, C2 = c2, Darken = darken
-	}
+	local grad = lunahelpers.Make("UIGradient", {Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, color1), ColorSequenceKeypoint.new(1, color2) }), Rotation = 90}, parent)
+	local t = lunalibrary.themeableobjects; t[#t + 1] = { Obj = grad, IsGradient = true, C1 = c1, C2 = c2, Darken = darken }
 	return grad
 end
 
@@ -1034,26 +976,15 @@ function lunalibrary:CreateWindow()
 	lunalibrary.currentwindow = windowobj
 
 	local startw, starth = width * 0.85, height * 0.85
-	local luna = lunahelpers.Make("CanvasGroup", { Name = "Luna", Size = UDim2.new(0, startw, 0, starth), Position = UDim2.new(0.5, -startw / 2, 0.5, -starth / 2), BackgroundColor3 = { Theme = "Body" }, BackgroundTransparency = 0.03, BorderSizePixel = 0, GroupTransparency = 1, ZIndex = 2 }, gui)
-	lunahelpers.Make("UISizeConstraint", { MinSize = Vector2.new(min_width, min_height), MaxSize = Vector2.new(max_width, max_height) }, luna)
-	local uiScale = lunahelpers.Make("UIScale", { Scale = 1 }, luna)
-	windowobj.uiScale = uiScale
-	local function RefreshScale()
-		local vp = gui.AbsoluteSize
-		if vp.X <= 0 or vp.Y <= 0 then return end
-		local target = math.min(1, math.max(0.72, math.min((vp.X - 20) / width, (vp.Y - 20) / height)))
-		uiScale.Scale = target
-	end
+	local luna = lunahelpers.Make("CanvasGroup", { Name = "Luna", Size = UDim2.new(0, startw, 0, starth), Position = UDim2.new(0.5, -startw / 2, 0.5, -starth / 2), BackgroundColor3 = { Theme = "Body" }, BackgroundTransparency = 0.4, BorderSizePixel = 0, GroupTransparency = 1, ZIndex = 2 }, gui)
 	windowobj.luna = luna
-	windowobj.mainstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, luna)
-	windowobj._maid:GiveTask(gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(RefreshScale))
-	RefreshScale()
-	tweenservice:Create(luna, tween_open, { Size = UDim2.new(0, width, 0, height), Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2), BackgroundTransparency = 0.03, GroupTransparency = 0 }):Play()
+	windowobj.mainstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, luna)
+	tweenservice:Create(luna, tween_open, { Size = UDim2.new(0, width, 0, height), Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2), BackgroundTransparency = 0, GroupTransparency = 0 }):Play()
 	tweenservice:Create(windowobj.mainstroke, tween_open, { Transparency = 0 }):Play()
 
 	local tooltipframe = lunahelpers.Make("Frame", { Name = "Tooltip", Size = UDim2.new(0, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.XY, BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, Visible = false, ZIndex = 100 }, gui)
 	lunahelpers.ApplyGradient(tooltipframe, "BodyLight", "Body")
-	local tooltipstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tooltipframe)
+	local tooltipstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tooltipframe)
 	lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6) }, tooltipframe)
 	lunahelpers.Make("UISizeConstraint", { MaxSize = Vector2.new(250, 100) }, tooltipframe)
 	local tooltiplabel = lunahelpers.Make("TextLabel", { Name = "TooltipText", Size = UDim2.new(0, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1, TextColor3 = { Theme = "Text" }, TextTransparency = 1, TextSize = 11, Font = Enum.Font.Legacy, TextWrapped = false, RichText = true, ZIndex = 101 }, tooltipframe)
@@ -1067,8 +998,8 @@ function lunalibrary:CreateWindow()
 
 	local tabtooltipframe = lunahelpers.Make("Frame", { Name = "TabTooltip", Size = UDim2.new(0, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.XY, AnchorPoint = Vector2.new(0.5, 1), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, Visible = false, ZIndex = 100 }, gui)
 	lunahelpers.ApplyGradient(tabtooltipframe, "BodyLight", "Body")
-	local tabtooltipstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tabtooltipframe)
-	lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, tabtooltipframe)
+	local tabtooltipstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tabtooltipframe)
+	lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }, tabtooltipframe)
 	local tabtooltiplabel = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1, TextColor3 = { Theme = "Text" }, TextTransparency = 1, TextSize = 11, Font = Enum.Font.Legacy, TextWrapped = false, ZIndex = 101 }, tabtooltipframe)
 	lunahelpers.ApplyFont(tabtooltiplabel)
 	windowobj.tabtooltip = tabtooltipframe
@@ -1076,30 +1007,26 @@ function lunalibrary:CreateWindow()
 	windowobj._tabtooltipstroke = tabtooltipstroke
 	windowobj._tabtooltipcounter = 0
 
-	local titlebar = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, titlebar_h), BackgroundColor3 = { Theme = "TitleBar" }, BorderSizePixel = 0, ZIndex = 3, _Corner = false }, luna)
-	lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 1, -1), BackgroundColor3 = { Theme = "Border" }, BorderSizePixel = 0, ZIndex = 10, _Corner = false }, titlebar)
+	local titlebar = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, titlebar_h), BackgroundColor3 = { Theme = "TitleBar" }, BorderSizePixel = 0, ZIndex = 3 }, luna)
+	lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 1, -1), BackgroundColor3 = { Theme = "Accent" }, BorderSizePixel = 0, ZIndex = 10 }, titlebar)
 	local iconoffset = 12
 	if default_icon ~= "" then
-		lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(1, -26, 0.5, -9), BackgroundTransparency = 1, Image = default_icon, ImageColor3 = { Theme = "ImageColor" }, ZIndex = 4 }, titlebar)
+		lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(0, 10, 0.5, -9), BackgroundTransparency = 1, Image = default_icon, ImageColor3 = { Theme = "ImageColor" }, ZIndex = 4 }, titlebar)
 		iconoffset = 34
 	end
-	local titlelabel = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, -160, 1, 0), Position = UDim2.new(0, 80, 0, 0), BackgroundTransparency = 1, Text = default_title, TextColor3 = { Theme = "Text" }, TextSize = 13, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 4 }, titlebar)
+	local titlelabel = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, -(iconoffset + btn_w * 3 + 8), 1, 0), Position = UDim2.new(0, iconoffset, 0, 1), BackgroundTransparency = 1, Text = default_title, TextColor3 = { Theme = "Text" }, TextSize = 13, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 4 }, titlebar)
 	lunahelpers.ApplyFont(titlelabel)
 	windowobj.titlelabel = titlelabel
 
-	local tl_size, tl_gap, tl_left = 12, 8, 13
-	local function MakeBtn(index, icon, basetheme, bghot, bgpress)
-		local btn = lunahelpers.Make("ImageButton", { Size = UDim2.new(0, tl_size, 0, tl_size), Position = UDim2.new(0, tl_left + index * (tl_size + tl_gap), 0.5, -tl_size / 2), BackgroundColor3 = { Theme = basetheme }, BorderSizePixel = 0, Image = "", ZIndex = 5, _Corner = UDim.new(1, 0) }, titlebar)
-		lunahelpers.Make("UIStroke", { Color = Color3.fromRGB(0, 0, 0), Thickness = 1, Transparency = 0.85, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, btn)
-		local sym = lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 8, 0, 8), Position = UDim2.new(0.5, -4, 0.5, -4), BackgroundTransparency = 1, Image = icon, ImageColor3 = Color3.fromRGB(20, 20, 20), ImageTransparency = 1, ScaleType = Enum.ScaleType.Fit, ZIndex = 6 }, btn)
-		lunahelpers.HoverImg(windowobj._maid, btn, basetheme, bghot, bgpress)
-		windowobj._maid:GiveTask(btn.MouseEnter:Connect(function() tweenservice:Create(sym, tween_tooltip, { ImageTransparency = 0.1 }):Play() end))
-		windowobj._maid:GiveTask(btn.MouseLeave:Connect(function() tweenservice:Create(sym, tween_tooltip, { ImageTransparency = 1 }):Play() end))
+	local function MakeBtn(xoff, icon, bghot, bgpress)
+		local btn = lunahelpers.Make("ImageButton", { Size = UDim2.new(0, btn_w, 0, titlebar_h), Position = UDim2.new(1, -(btn_w * 3) + xoff, 0, 0), BackgroundColor3 = { Theme = "TitleBar" }, BorderSizePixel = 0, Image = "", ZIndex = 5 }, titlebar)
+		lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 14, 0, 14), Position = UDim2.new(0.5, -7, 0.5, -7), BackgroundTransparency = 1, Image = icon, ImageColor3 = { Theme = "ImageColor" }, ScaleType = Enum.ScaleType.Fit, ZIndex = 6 }, btn)
+		lunahelpers.HoverImg(windowobj._maid, btn, "TitleBar", bghot, bgpress)
 		return btn
 	end
-	local btnclose = MakeBtn(0, icons.Close, "TrafficClose", "TrafficCloseHover", "TrafficCloseHover")
-	local btnmin   = MakeBtn(1, icons.Minimize, "TrafficMin", "TrafficMinHover", nil)
-	local btnmax   = MakeBtn(2, icons.Maximize, "TrafficMax", "TrafficMaxHover", nil)
+	local btnmin   = MakeBtn(0, icons.Minimize, "BtnHover", nil)
+	local btnmax   = MakeBtn(btn_w, icons.Maximize, "BtnHover", nil)
+	local btnclose = MakeBtn(btn_w * 2, icons.Close, "CloseHover", "ClosePress")
 
 	local gradientframe = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 1, -titlebar_h), Position = UDim2.new(0, 0, 0, titlebar_h), BorderSizePixel = 0, ZIndex = 1 }, luna)
 	lunahelpers.ApplyGradient(gradientframe, "BodyLight", "Body")
@@ -1107,20 +1034,20 @@ function lunalibrary:CreateWindow()
 	local contentarea = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 1, -(titlebar_h + (height * 0.13) + 20)), Position = UDim2.new(0, 0, 0, titlebar_h), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 2 }, luna)
 	windowobj.contentarea = contentarea
 
-	local tabbarcontainer = lunahelpers.Make("Frame", { Name = "TabBarContainer", Size = UDim2.new(0.92, 0, 0.11, 0), Position = UDim2.new(0.5, 0, 0.96, 0), AnchorPoint = Vector2.new(0.5, 1), BorderSizePixel = 0, ZIndex = 20, _Corner = UDim.new(0, 16) }, luna)
+	local tabbarcontainer = lunahelpers.Make("Frame", { Name = "TabBarContainer", Size = UDim2.new(0.95, 0, 0.13, 0), Position = UDim2.new(0.5, 0, 0.96, 0), AnchorPoint = Vector2.new(0.5, 1), BorderSizePixel = 0, ZIndex = 20 }, luna)
 	lunahelpers.ApplyGradient(tabbarcontainer)
-	lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tabbarcontainer)
+	lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tabbarcontainer)
 	windowobj.tabbarcontainer = tabbarcontainer
 	local tabbar = lunahelpers.Make("ScrollingFrame", { Name = "TabBar", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollBarThickness = 0, ScrollingDirection = Enum.ScrollingDirection.X, ZIndex = 20 }, tabbarcontainer)
-	lunahelpers.Make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, tabbar)
+	lunahelpers.Make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, tabbar)
 	lunahelpers.Make("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }, tabbar)
 
 	local openbtn = lunahelpers.Make("TextButton", { Name = "OpenUI", Size = UDim2.new(0, 100, 0, 30), Position = UDim2.new(0.5, -50, 0, -30), BackgroundTransparency = 1, Text = "", AutoButtonColor = false, ZIndex = 50, Visible = false }, gui)
-	local openbtnbg = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 49, _Corner = UDim.new(1, 0) }, openbtn)
+	local openbtnbg = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 49 }, openbtn)
 	lunahelpers.ApplyGradient(openbtnbg, "BodyLight", "Body")
 	local openbtntext = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "Open UI", TextColor3 = { Theme = "Text" }, TextSize = 13, Font = Enum.Font.Legacy, ZIndex = 51, TextTransparency = 1 }, openbtn)
 	lunahelpers.ApplyFont(openbtntext)
-	local openbtnstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, openbtnbg)
+	local openbtnstroke = lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, Transparency = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, openbtnbg)
 	local preminsize = UDim2.new(0, width, 0, height)
 	local preminpos = UDim2.new(0.5, -width / 2, 0.5, -height / 2)
 	local openbtndraginput, openbtndragorigin, openbtnorigin, openbtndragged = nil, nil, nil, false
@@ -1140,7 +1067,6 @@ function lunalibrary:CreateWindow()
 		luna.Position = UDim2.new(curp.X.Scale, curp.X.Offset + (curs.X.Offset - tw) / 2, curp.Y.Scale, curp.Y.Offset + (curs.Y.Offset - th) / 2)
 		
 		luna.Visible = true; luna.GroupTransparency = 1; windowobj.mainstroke.Transparency = 1
-		RefreshScale()
 		if windowobj.contentarea then windowobj.contentarea.Visible = true end
 		if windowobj.gradientframe then windowobj.gradientframe.Visible = true end
 		if windowobj.tabbarcontainer then windowobj.tabbarcontainer.Visible = true end
@@ -1183,35 +1109,40 @@ function lunalibrary:CreateWindow()
 	end))
 	windowobj._maid:GiveTask(userinputservice.InputEnded:Connect(function(input) if input == activeinput then activeinput = nil end end))
 
-	windowobj._maid:GiveTask(userinputservice.InputChanged:Connect(function(input)
-		if activeinput and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			local cur = Vector2.new(input.Position.X, input.Position.Y)
+	windowobj._maid:GiveTask(runservice.RenderStepped:Connect(function()
+		if activeinput then
+			local cur = Vector2.new(activeinput.Position.X, activeinput.Position.Y)
 			local delta = cur - dragorigin
 			local vp = gui.AbsoluteSize
 			local fsz = luna.AbsoluteSize
 			luna.Position = UDim2.new(0, mathclamp(lunaorigin.X + delta.X, 0, vp.X - fsz.X), 0, mathclamp(lunaorigin.Y + delta.Y, 0, vp.Y - fsz.Y))
 		end
-	end))
-	windowobj._maid:GiveTask(userinputservice.InputChanged:Connect(function(input)
-		if windowobj.tooltip.Visible and windowobj._currenttooltipinstance and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		if windowobj.tooltip.Visible and windowobj._currenttooltipinstance then
 			local inst = windowobj._currenttooltipinstance
 			if not inst:IsDescendantOf(game) then
 				windowobj.tooltip.Visible = false
 				windowobj._currenttooltipinstance = nil
-				return
+			else
+				local mloc = userinputservice:GetMouseLocation()
+				local tts = windowobj.tooltip.AbsoluteSize
+				local vp = gui.AbsoluteSize
+				local rx = mloc.X + 12
+				local ry = mloc.Y + 12
+				if rx + tts.X > vp.X then rx = mloc.X - tts.X - 4 end
+				if ry + tts.Y > vp.Y then ry = mloc.Y - tts.Y - 4 end
+				rx = mathclamp(rx, 0, mathmax(0, vp.X - tts.X))
+				ry = mathclamp(ry, 0, mathmax(0, vp.Y - tts.Y))
+				windowobj.tooltip.Position = UDim2.new(0, rx, 0, ry)
 			end
-			local mloc = userinputservice:GetMouseLocation()
-			local tts = windowobj.tooltip.AbsoluteSize
-			local vp = gui.AbsoluteSize
-			local rx = mloc.X + 12
-			local ry = mloc.Y + 12
-			if rx + tts.X > vp.X then rx = mloc.X - tts.X - 4 end
-			if ry + tts.Y > vp.Y then ry = mloc.Y - tts.Y - 4 end
-			rx = mathclamp(rx, 0, mathmax(0, vp.X - tts.X))
-			ry = mathclamp(ry, 0, mathmax(0, vp.Y - tts.Y))
-			windowobj.tooltip.Position = UDim2.new(0, rx, 0, ry)
+		end
+		if windowobj.tabtooltip.Visible and windowobj._tabtooltipinstance and windowobj._tabtooltipinstance:IsDescendantOf(game) then
+			local inst = windowobj._tabtooltipinstance
+			local bx = inst.AbsolutePosition.X
+			local bw = inst.AbsoluteSize.X
+			windowobj.tabtooltip.Position = UDim2.new(0, bx + bw / 2, 0, inst.AbsolutePosition.Y + 8)
 		end
 	end))
+
 	local savedsize, savedpos
 	windowobj._maid:GiveTask(btnclose.MouseButton1Click:Connect(function() lunalibrary:Unload() end))
 	windowobj._maid:GiveTask(btnmin.MouseButton1Click:Connect(function() windowobj:Toggle() end))
@@ -1219,10 +1150,8 @@ function lunalibrary:CreateWindow()
 		local icon = btnmax:FindFirstChildOfClass("ImageLabel")
 		local vp = gui.AbsoluteSize
 		if windowobj.ismaximized then
-			uiScale.Scale = 1
 			tweenservice:Create(luna, tween, { Size = savedsize, Position = savedpos }):Play()
 			windowobj.ismaximized = false
-			task.delay(0.18, RefreshScale)
 			if icon then icon.Image = icons.Maximize end
 		else
 			if windowobj.isminimized then
@@ -1232,7 +1161,6 @@ function lunalibrary:CreateWindow()
 				if windowobj.tabbarcontainer then windowobj.tabbarcontainer.Visible = true end
 			end
 			savedsize = luna.Size; savedpos = luna.Position
-			uiScale.Scale = 1
 			tweenservice:Create(luna, tween, { Size = UDim2.new(0, vp.X, 0, vp.Y), Position = UDim2.new(0, 0, 0, 0) }):Play()
 			windowobj.ismaximized = true
 			if icon then icon.Image = icons.Unmaximize end
@@ -1246,7 +1174,6 @@ function lunalibrary:CreateWindow()
 		x = x and mathclamp(tonumber(x) or curx, 100, 4096) or curx
 		y = y and mathclamp(tonumber(y) or cury, titlebar_h, 4096) or cury
 		tweenservice:Create(self.luna, tween, { Size = UDim2.new(0, x, 0, y) }):Play()
-		task.delay(0.18, RefreshScale)
 	end
 	function windowobj:GetSize() return self.luna.Size.X.Offset, self.luna.Size.Y.Offset end
 
@@ -1277,17 +1204,17 @@ function lunalibrary:CreateWindow()
 		local tabobj = { _maid = maid.New(), _contentmaid = maid.New() }
 		self._maid:GiveTask(tabobj._maid)
 		tabobj._maid:GiveTask(tabobj._contentmaid)
-		local btn = lunahelpers.Make("TextButton", { Name = name .. "Tab", Size = UDim2.new(0, 46, 0, 46), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Text = "", ZIndex = 21, _Corner = UDim.new(0, 10) }, tabbar)
+		local btn = lunahelpers.Make("TextButton", { Name = name .. "Tab", Size = UDim2.new(0, 44, 0, 44), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Text = "", ZIndex = 21 }, tabbar)
 		local function UpdateTabBtnSize()
-			local s = mathmax(32, tabbar.AbsoluteSize.Y - 10)
+			local s = mathmax(30, tabbar.AbsoluteSize.Y - 8)
 			btn.Size = UDim2.new(0, s, 0, s)
 		end
 		UpdateTabBtnSize()
 		tabobj._maid:GiveTask(tabbar:GetPropertyChangedSignal("AbsoluteSize"):Connect(UpdateTabBtnSize))
 		lunahelpers.Make("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }, btn)
 		lunahelpers.ApplyGradient(btn, "BodyLight", "BodyLight")
-		lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, btn)
-		local overlay = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 21, _Corner = UDim.new(0, 10) }, btn)
+		lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, btn)
+		local overlay = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 21 }, btn)
 		
 		tabobj._maid:GiveTask(btn.MouseEnter:Connect(function()
 			tweenservice:Create(overlay, tween, { BackgroundTransparency = 0.94 }):Play()
@@ -1329,7 +1256,7 @@ function lunalibrary:CreateWindow()
 		tabobj._maid:GiveTask(btn.MouseButton1Up:Connect(function() tweenservice:Create(overlay, tween, { BackgroundTransparency = 0.94 }):Play() end))
 		
 		if icon ~= "" then lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, Image = icon, ImageColor3 = { Theme = "ImageColor" }, ScaleType = Enum.ScaleType.Fit, ZIndex = 22 }, btn)
-		else local txt = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, 0, 1, 0), TextXAlignment = Enum.TextXAlignment.Center, BackgroundTransparency = 1, BorderSizePixel = 0, Text = stringsub(name, 1, 1), TextColor3 = { Theme = "Text" }, TextSize = 15, Font = Enum.Font.Legacy, ZIndex = 22 }, btn); lunahelpers.ApplyFont(txt) end
+		else local txt = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, 0, 1, 0), TextXAlignment = Enum.TextXAlignment.Center, BackgroundTransparency = 1, BorderSizePixel = 0, Text = stringsub(name, 1, 1), TextColor3 = { Theme = "Text" }, TextSize = 16, Font = Enum.Font.Legacy, ZIndex = 22 }, btn); lunahelpers.ApplyFont(txt) end
 
 		local tabcanvas = lunahelpers.Make("CanvasGroup", { Name = name .. "Canvas", Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, GroupTransparency = 1, Visible = false, ZIndex = 2 }, contentarea)
 		local emptylabel = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "This Tab is Empty! :(", TextColor3 = { Theme = "TextDim" }, TextSize = 16, Font = Enum.Font.Legacy, ZIndex = 5 }, tabcanvas)
@@ -1337,9 +1264,9 @@ function lunalibrary:CreateWindow()
 		local colscont = lunahelpers.Make("Frame", { Size = UDim2.new(1, -32, 1, -24), Position = UDim2.new(0, 12, 0, 12), BackgroundTransparency = 1, BorderSizePixel = 0 }, tabcanvas)
 		lunahelpers.Make("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8) }, colscont)
 		local function MakeCol(order)
-			local col = lunahelpers.Make("ScrollingFrame", { Size = UDim2.new(0.5, -4, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = { Theme = "Border" }, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, LayoutOrder = order }, colscont)
-			lunahelpers.Make("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, col)
-			lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 4) }, col)
+			local col = lunahelpers.Make("ScrollingFrame", { Size = UDim2.new(0.5, -4, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = { Theme = "Border" }, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, LayoutOrder = order }, colscont)
+			lunahelpers.Make("UIListLayout", { Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder }, col)
+			lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 4) }, col)
 			return col
 		end
 		local leftcol, rightcol = MakeCol(1), MakeCol(2)
@@ -1381,12 +1308,12 @@ function lunalibrary:CreateWindow()
 			self._hasmain = true
 			if emptylabel then emptylabel.Visible = false end
 			local infoframe = lunahelpers.Make("Frame", { Name = "Info", Size = UDim2.new(1, 0, 0, 56), BorderSizePixel = 0, LayoutOrder = -10, ZIndex = 3 }, leftcol)
-			lunahelpers.ApplyGradient(infoframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, infoframe); lunahelpers.Make("UIPadding", { PaddingRight = UDim.new(0, 32) }, infoframe)
+			lunahelpers.ApplyGradient(infoframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, infoframe); lunahelpers.Make("UIPadding", { PaddingRight = UDim.new(0, 32) }, infoframe)
 			local pfp = lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 42, 0, 42), Position = UDim2.new(0, 10, 0.5, -21), BackgroundTransparency = 1, BorderSizePixel = 0, Image = "", ZIndex = 4 }, infoframe)
 			
 			local dispName = player and player.DisplayName or "Unknown"
 			local realName = player and player.Name or "Unknown"
-			local dnl = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 16), Position = UDim2.new(0, 62, 0, 13), BackgroundTransparency = 1, BorderSizePixel = 0, Text = dispName, TextColor3 = { Theme = "Text" }, TextSize = 13, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, AutomaticSize = Enum.AutomaticSize.X, ZIndex = 4 }, infoframe); lunahelpers.ApplyFont(dnl)
+			local dnl = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 16), Position = UDim2.new(0, 62, 0, 13), BackgroundTransparency = 1, BorderSizePixel = 0, Text = dispName, TextColor3 = { Theme = "Text" }, TextSize = 14, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, AutomaticSize = Enum.AutomaticSize.X, ZIndex = 4 }, infoframe); lunahelpers.ApplyFont(dnl)
 			local unl = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 14), Position = UDim2.new(0, 62, 0, 29), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "@" .. realName, TextColor3 = { Theme = "TextDim" }, TextSize = 12, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, AutomaticSize = Enum.AutomaticSize.X, ZIndex = 4 }, infoframe); lunahelpers.ApplyFont(unl)
 			task.spawn(function()
 				if not player then return end
@@ -1395,7 +1322,7 @@ function lunalibrary:CreateWindow()
 			end)
 
 			local gameframe = lunahelpers.Make("Frame", { Name = "Game", Size = UDim2.new(1, 0, 0, 56), BorderSizePixel = 0, LayoutOrder = -9, ZIndex = 3 }, leftcol)
-			lunahelpers.ApplyGradient(gameframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, gameframe); lunahelpers.Make("UIPadding", { PaddingRight = UDim.new(0, 32) }, gameframe)
+			lunahelpers.ApplyGradient(gameframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, gameframe); lunahelpers.Make("UIPadding", { PaddingRight = UDim.new(0, 32) }, gameframe)
 			local gamepfp = lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 42, 0, 42), Position = UDim2.new(0, 10, 0.5, -21), BackgroundTransparency = 1, BorderSizePixel = 0, Image = "", ZIndex = 4 }, gameframe)
 			local gnl = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 16), Position = UDim2.new(0, 62, 0, 13), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "Loading...", TextColor3 = { Theme = "Text" }, TextSize = 14, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, AutomaticSize = Enum.AutomaticSize.X, ZIndex = 4 }, gameframe); lunahelpers.ApplyFont(gnl)
 			local gcl = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 14), Position = UDim2.new(0, 62, 0, 29), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "By ...", TextColor3 = { Theme = "TextDim" }, TextSize = 12, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, AutomaticSize = Enum.AutomaticSize.X, ZIndex = 4 }, gameframe); lunahelpers.ApplyFont(gcl)
@@ -1412,12 +1339,12 @@ function lunalibrary:CreateWindow()
 			end)
 
 			local pingframe = lunahelpers.Make("Frame", { Name = "PingModal", Size = UDim2.new(1, 0, 0, 56), BorderSizePixel = 0, LayoutOrder = -10, ZIndex = 3 }, rightcol)
-			lunahelpers.ApplyGradient(pingframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, pingframe)
+			lunahelpers.ApplyGradient(pingframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, pingframe)
 			local pt = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 14), Position = UDim2.new(0, 10, 0, 6), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "Ping", TextColor3 = { Theme = "TextDim" }, TextSize = 11, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 4 }, pingframe); lunahelpers.ApplyFont(pt)
 			local pv = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, -20, 0, 32), Position = UDim2.new(0, 10, 0, 20), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "0 ms", TextColor3 = Color3.fromRGB(255, 255, 255), TextSize = 28, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 4 }, pingframe); lunahelpers.ApplyFont(pv)
 
 			local fpsframe = lunahelpers.Make("Frame", { Name = "FPSModal", Size = UDim2.new(1, 0, 0, 56), BorderSizePixel = 0, LayoutOrder = -9, ZIndex = 3 }, rightcol)
-			lunahelpers.ApplyGradient(fpsframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fpsframe)
+			lunahelpers.ApplyGradient(fpsframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fpsframe)
 			local ft = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 0, 0, 14), Position = UDim2.new(0, 10, 0, 6), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "FPS", TextColor3 = { Theme = "TextDim" }, TextSize = 11, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 4 }, fpsframe); lunahelpers.ApplyFont(ft)
 			local fv = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, -20, 0, 32), Position = UDim2.new(0, 10, 0, 20), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "0", TextColor3 = Color3.fromRGB(255, 255, 255), TextSize = 28, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 4 }, fpsframe); lunahelpers.ApplyFont(fv)
 
@@ -1461,7 +1388,7 @@ function lunalibrary:CreateWindow()
 			if emptylabel then emptylabel.Visible = false end
 			local parentcol = side == "right" and rightcol or leftcol
 			local secframe = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, 0), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, AutomaticSize = Enum.AutomaticSize.Y }, parentcol)
-			lunahelpers.ApplyGradient(secframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, secframe)
+			lunahelpers.ApplyGradient(secframe, "BodyLight", "Body", 0.98); lunahelpers.Make("UIStroke", { Color = { Theme = "Accent" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, secframe)
 			lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8) }, secframe)
 			lunahelpers.Make("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, secframe)
 			local sectitle = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 0, 2), BackgroundTransparency = 1, BorderSizePixel = 0, Text = secname, TextColor3 = { Theme = "TextDim" }, TextSize = 12, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, LayoutOrder = 1, Visible = true }, secframe); lunahelpers.ApplyFont(sectitle)
@@ -1600,16 +1527,15 @@ function lunalibrary:CreateWindow()
 					local t = { _maid = maid.New() }; self._maid:GiveTask(t._maid)
 					local tf = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, 28), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 2 }, self.container)
 					local tt = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, -30, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, Text = togglename, TextColor3 = { Theme = "TextDim" }, TextSize = 14, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd }, tf); lunahelpers.ApplyFont(tt)
-					local cbFrame = lunahelpers.Make("Frame", { Size = UDim2.new(0, 40, 0, 22), Position = UDim2.new(1, -2, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), BackgroundColor3 = { Theme = "Body" }, BorderSizePixel = 0, ZIndex = 3, _Corner = UDim.new(1, 0) }, tf)
+					local cbFrame = lunahelpers.Make("Frame", { Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(1, -2, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), BackgroundColor3 = { Theme = "Body" }, BorderSizePixel = 0, ZIndex = 3 }, tf)
 					local cbs = lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, cbFrame)
-					local cm = lunahelpers.Make("ImageLabel", { Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(0, 2, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundColor3 = Color3.fromRGB(250, 250, 252), BackgroundTransparency = 0, BorderSizePixel = 0, Image = "", ZIndex = 4, _Corner = UDim.new(1, 0) }, cbFrame)
-					lunahelpers.Make("UIStroke", { Color = Color3.fromRGB(0, 0, 0), Thickness = 1, Transparency = 0.8, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, cm)
+					local cm = lunahelpers.Make("ImageLabel", { Size = UDim2.new(1, -4, 1, -4), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, Image = "rbxassetid://9754130783", ImageColor3 = { Theme = "Accent" }, ImageTransparency = 1, ScaleType = Enum.ScaleType.Fit, ZIndex = 4 }, cbFrame)
 					local clk = lunahelpers.Make("TextButton", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "", ZIndex = 5 }, tf)
 					local state, disabled = false, false; local _tip = tooltip
 					lunahelpers.ApplyTooltip(t._maid, tf, function() if disabled then return "This Function Is Disabled! :(" end; return _tip or "" end, windowobj)
 					lunalibrary.flags[flag] = t
-					function t:SetValue(val) if disabled then return end; state = not not val; tweenservice:Create(cm, tween, { Position = state and UDim2.new(0, 18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0) }):Play(); if state then lunahelpers.UpdateThemeMapping(cbFrame, "BackgroundColor3", "Accent"); lunahelpers.UpdateThemeMapping(cbs, "Color", "Accent"); lunahelpers.UpdateThemeMapping(tt, "TextColor3", "Text"); else lunahelpers.UpdateThemeMapping(cbFrame, "BackgroundColor3", "Body"); lunahelpers.UpdateThemeMapping(cbs, "Color", "Border"); lunahelpers.UpdateThemeMapping(tt, "TextColor3", "TextDim"); end; task.spawn(SafeCall, cb, state) end
-					function t:SetDisabled(val) val = not not val; disabled = val; lunahelpers.UpdateThemeMapping(tt, "TextColor3", val and "Border" or (state and "Text" or "TextDim")); lunahelpers.UpdateThemeMapping(cbs, "Color", "Border"); lunahelpers.UpdateThemeMapping(cbFrame, "BackgroundColor3", val and "BodyLight" or (state and "Accent" or "Body")) end
+					function t:SetValue(val) if disabled then return end; state = not not val; tweenservice:Create(cm, tween, { ImageTransparency = state and 0 or 1 }):Play(); if state then lunahelpers.UpdateThemeMapping(cbs, "Color", "Accent"); lunahelpers.UpdateThemeMapping(tt, "TextColor3", "Text"); else lunahelpers.UpdateThemeMapping(cbs, "Color", "Border"); lunahelpers.UpdateThemeMapping(tt, "TextColor3", "TextDim"); end; task.spawn(SafeCall, cb, state) end
+					function t:SetDisabled(val) val = not not val; disabled = val; lunahelpers.UpdateThemeMapping(tt, "TextColor3", val and "Border" or (state and "Text" or "TextDim")); lunahelpers.UpdateThemeMapping(cbs, "Color", "Border"); lunahelpers.UpdateThemeMapping(cbFrame, "BackgroundColor3", val and "BodyLight" or "Body") end
 					function t:SetText(val) tt.Text = tostring(val or "") end
 					function t:GetValue() return state end
 					function t:SetTooltip(text) _tip = text end
@@ -1624,7 +1550,7 @@ function lunalibrary:CreateWindow()
 						local callback = keybindOptions.Callback or function() if not disabled then t:SetValue(not state) end end
 						
 						cbFrame.Position = UDim2.new(1, -34, 0.5, 0)
-						tt.Size = UDim2.new(1, -80, 1, 0)
+						tt.Size = UDim2.new(1, -56, 1, 0)
 						return AttachKeybindLogic(t._maid, tf, UDim2.new(0, 24, 0, 24), UDim2.new(1, -2, 0.5, 0), Vector2.new(1, 0.5), 10, default, touchenabled, callback)
 					end
 					
@@ -1759,7 +1685,7 @@ function lunalibrary:CreateWindow()
 					local sf = lunahelpers.Make("Frame", { Size = UDim2.new(1, 0, 0, 42), BackgroundTransparency = 1, BorderSizePixel = 0 }, self.container)
 					local tl = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, -50, 0, 14), BackgroundTransparency = 1, BorderSizePixel = 0, Text = sn, TextColor3 = { Theme = "TextDim" }, TextSize = 12, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd }, sf); lunahelpers.ApplyFont(tl)
 					local vll = lunahelpers.Make("TextLabel", { Size = UDim2.new(0, 50, 0, 14), Position = UDim2.new(1, -50, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "", TextColor3 = { Theme = "Text" }, TextSize = 12, Font = Enum.Font.Legacy, TextXAlignment = Enum.TextXAlignment.Right, TextTruncate = Enum.TextTruncate.AtEnd }, sf); lunahelpers.ApplyFont(vll)
-					local sbg = lunahelpers.Make("TextButton", { Size = UDim2.new(1, 0, 0, 12), Position = UDim2.new(0, 0, 0, 20), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 2 }, sf)
+					local sbg = lunahelpers.Make("TextButton", { Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0, 0, 0, 20), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 2 }, sf)
 					lunahelpers.ApplyGradient(sbg, "BodyLight", "Body", 0.96); lunahelpers.Make("UIStroke", { Color = { Theme = "Border" }, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, sbg)
 					local sfl = lunahelpers.Make("Frame", { Size = UDim2.new(0, 0, 1, 0), BackgroundColor3 = { Theme = "Accent" }, BorderSizePixel = 0 }, sbg)
 					local cv, isdragging, disabled = default, false, false; local _tip = tooltip; local mult = 10 ^ rounding
@@ -1880,7 +1806,7 @@ function lunalibrary:CreateWindow()
 					local fsc = lunahelpers.Make("ScrollingFrame", { Size = UDim2.new(1, 0, 1, -lo - 6), Position = UDim2.new(0, 0, 0, lo + 3), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 0, ScrollBarImageColor3 = { Theme = "Border" }, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingEnabled = false, ZIndex = 92 }, ff)
 					lunahelpers.Make("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder }, fsc); lunahelpers.Make("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6) }, fsc)
 					local del = lunahelpers.Make("TextLabel", { Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "This Dropdown is Empty! :(", TextColor3 = { Theme = "TextDim" }, TextSize = 11, Font = Enum.Font.Legacy, ZIndex = 93, Visible = false }, fsc); lunahelpers.ApplyFont(del)
-					local item_h = 24
+					local item_h = 22
 					local function Udt()
 						local s = ""
 						if ismulti then local sl = {}; local sn = 0; for k, v in selected do if v then sn += 1; sl[sn] = displaynames[k] or k end end; s = sn > 0 and tableconcat(sl, ", ") or "None"
@@ -2823,7 +2749,7 @@ function lunalibrary:CreateWindow()
 		function tabobj:LoadThemeManager()
 			local sec = self:AddSection({ Name = "Theme Management", Side = "Right" })
 			local dp = sec:AddDropdown({ Name = "Selected Theme", Items = lunalibrary:GetFiles("Theme"), IsSearchable = true, Tooltip = "Select a theme.", Flag = "SelectedThemeDP" })
-			task.spawn(function() local lf = {}; while task.wait(2.5) do if not dp._maid or dp._maid._destroyed then break end; local cf = lunalibrary:GetFiles("Theme"); local ch = false; if #lf ~= #cf then ch = true else for i, v in lf do if cf[i] ~= v then ch = true; break end end end; if ch then lf = cf; local c = dp:GetValue(); dp:EditValue(cf); dp:SetValue(c) end end end)
+			task.spawn(function() local lf = {}; while task.wait(1) do if not dp._maid or dp._maid._destroyed then break end; local cf = lunalibrary:GetFiles("Theme"); local ch = false; if #lf ~= #cf then ch = true else for i, v in lf do if cf[i] ~= v then ch = true; break end end end; if ch then lf = cf; local c = dp:GetValue(); dp:EditValue(cf); dp:SetValue(c) end end end)
 			local tbb = sec:AddTextBox({ Name = "Theme Name", Placeholder = "MyTheme", Tooltip = "Name for saving.", Flag = "ThemeManagerName" })
 			local sv = sec:AddButton({ Name = "Save Theme", Callback = function() local n = tbb:GetValue(); if n == "" then n = "MyTheme" end; lunalibrary:SaveTheme(n) end, Tooltip = "Save current colors to new file." })
 			sv:AddSubButton({ Name = "Load Theme", Callback = function() local n = dp:GetValue(); if n then lunalibrary:LoadTheme(n) end end })
@@ -2836,7 +2762,7 @@ function lunalibrary:CreateWindow()
 		function tabobj:LoadConfigManager()
 			local sec = self:AddSection({ Name = "Config Management", Side = "Right" })
 			local dp = sec:AddDropdown({ Name = "Selected Config", Items = lunalibrary:GetFiles("Config"), IsSearchable = true, Tooltip = "Select a config.", Flag = "SelectedConfigDP" })
-			task.spawn(function() local lf = {}; while task.wait(2.5) do if not dp._maid or dp._maid._destroyed then break end; local cf = lunalibrary:GetFiles("Config"); local ch = false; if #lf ~= #cf then ch = true else for i, v in lf do if cf[i] ~= v then ch = true; break end end end; if ch then lf = cf; local c = dp:GetValue(); dp:EditValue(cf); dp:SetValue(c) end end end)
+			task.spawn(function() local lf = {}; while task.wait(1) do if not dp._maid or dp._maid._destroyed then break end; local cf = lunalibrary:GetFiles("Config"); local ch = false; if #lf ~= #cf then ch = true else for i, v in lf do if cf[i] ~= v then ch = true; break end end end; if ch then lf = cf; local c = dp:GetValue(); dp:EditValue(cf); dp:SetValue(c) end end end)
 			local tbb = sec:AddTextBox({ Name = "Config Name", Placeholder = "MyConfig", Tooltip = "Name for saving.", Flag = "ConfigManagerName" })
 			local sv = sec:AddButton({ Name = "Save Config", Callback = function() local n = tbb:GetValue(); if n == "" then n = "MyConfig" end; lunalibrary:SaveConfig(n) end, Tooltip = "Save element states to new file." })
 			sv:AddSubButton({ Name = "Load Config", Callback = function() local n = dp:GetValue(); if n then lunalibrary:LoadConfig(n) end end })
@@ -2850,8 +2776,4 @@ function lunalibrary:CreateWindow()
 	return windowobj
 end
 
-return {
-	Library = lunalibrary,
-	Helpers = lunahelpers,
-	Main = lunamain,
-}
+return lunalibrary
