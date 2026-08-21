@@ -2776,4 +2776,8 @@ function lunalibrary:CreateWindow()
 	return windowobj
 end
 
-return lunalibrary
+return {
+	Library = lunalibrary,
+	Helpers = lunahelpers,
+	Main = lunamain,
+}
