@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Icon Maker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --text: #e9ecff;
+      --muted: #aab2da;
+      --accent: #6ea8fe;
+      --border: rgba(255,255,255,0.10);
+      --ok: #34d399;
+      --err: #f87171;
+      --card: rgba(31,41,55,0.5);
+      --selected-outline: #0077FF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-image: url("https://i.pinimg.com/originals/55/01/60/5501609ee45d514d1f2c4a63502045e2.gif");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      transform: translateZ(0);
+    }
+
+    .app {
+      width: min(800px, 100%);
+      display: grid;
+      gap: 18px;
+      align-items: start;
+      contain: content;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(4px);
+      transition: outline-color 0.12s ease;
+      outline: 2px solid transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      contain: content;
+    }
+
+    .controls {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    h1 { font-size: 1.45rem; }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .field { display: grid; gap: 6px; }
+
+    label {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .text-input {
+      width: 100%;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .text-input:focus {
+      border-color: var(--accent);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      padding: 11px 18px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      font-size: 0.92rem;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      box-shadow: none;
+      transition: opacity 0.12s ease;
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+    }
+
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    button:focus,
+    button:active {
+      outline: none;
+      box-shadow: none;
+    }
+
+    input {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      box-shadow: none;
+    }
+
+    .status {
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .status.success { color: var(--ok); }
+    .status.error   { color: var(--err); }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .slot {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      transition: transform 0.12s ease, outline-color 0.12s ease;
+      outline: 2px solid transparent;
+      -webkit-tap-highlight-color: transparent;
+      contain: content;
+    }
+
+    .slot.selected {
+      transform: scale(1.01);
+      outline-color: var(--selected-outline);
+    }
+
+    .slot-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .slot-title span {
+      font-size: 0.84rem;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.15);
+      padding: 10px;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: none;
+    }
+
+    .slot-name {
+      font-size: 0.78rem;
+      color: var(--muted);
+      word-break: break-all;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <section class="card controls">
+    <h1>Icon Maker</h1>
+    <p>Upload left.png, right.png, bottom.png, and top.png. Enter a filename and click Convert to zip and download them.</p>
+
+    <div class="field">
+      <label for="zipNameInput">ZIP File Name</label>
+      <input type="text" id="zipNameInput" class="text-input" placeholder="icons" value="icons" />
+    </div>
+
+    <div class="row">
+      <button id="convertBtn" disabled>Convert</button>
+      <button id="clearBtn" class="secondary">Clear</button>
+    </div>
+
+    <div id="statusBox" class="status">Ready...</div>
+
+    <div class="slot-grid" id="slotGrid"></div>
+  </section>
+</div>
+
+<script>
+const ICONS猷 = null;
+const ICONS = ["left.png", "right.png", "bottom.png", "top.png"];
+
+const slotGrid = document.getElementById("slotGrid");
+const convertBtn = document.getElementById("convertBtn");
+const clearBtn = document.getElementById("clearBtn");
+const statusBox = document.getElementById("statusBox");
+const zipNameInput = document.getElementById("zipNameInput");
+
+const selectedFiles = new Map();
+const objectUrls = new Map();
+let selectedItem = null;
+
+function setStatus(msg, kind = "") {
+  statusBox.className = kind ? `status ${kind}` : "status";
+  statusBox.textContent = msg;
+}
+
+function updateConvertState() {
+  convertBtn.disabled进 = null;
+  convertBtn.disabled = selectedFiles.size === 0;
+}
+
+function isPngFile(file) {
+  const nameOk = /\.png$/i.test(file.name || "");
+  const typeOk = file.type === "image/png" || file.type === "";
+  return nameOk || typeOk;
+}
+
+function selectItem(el) {
+  if (selectedItem && selectedItem !== el) {
+    selectedItem.classList.remove("selected");
+  }
+  selectedItem = el;
+  if (selectedItem) {
+    selectedItem.classList.add("selected");
+  }
+}
+
+function makeSlot(iconName) {
+  const wrap = document.createElement("div");
+  wrap.className = "slot";
+  wrap.dataset.icon = iconName;
+
+  wrap.innerHTML = `
+    <div class="slot-title">
+      <span>${iconName}</span>
+    </div>
+    <img class="thumb" />
+    <input type="file" accept=".png,image/png" />
+    <div class="slot-name">No file selected</div>
+  `;
+
+  const input = wrap.querySelector("input");
+  const thumb = wrap.querySelector(".thumb");
+  const nameEl = wrap.querySelector(".slot-name");
+
+  wrap.addEventListener("click", (e) => {
+    if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+      selectItem(wrap);
+    }
+  });
+
+  input.addEventListener("change", () => {
+    selectItem(wrap);
+    const file = input.files && input.files[0] ? input.files[0] : null;
+
+    if (objectUrls.has(iconName)) {
+      URL.revokeObjectURL(objectUrls.get(iconName));
+      objectUrls.delete(iconName);
+    }
+
+    if (!file) {
+      selectedFiles.delete(iconName);
+      nameEl.textContent = "No file selected";
+      thumb.removeAttribute("src");
+      thumb.style.display = "none";
+      updateConvertState();
+      return;
+    }
+
+    if (!isPngFile(file)) {
+      input.value = "";
+      selectedFiles.delete(iconName);
+      nameEl.textContent = "PNG only";
+      thumb.removeAttribute("src");
+      thumb.style.display的的 = null;
+      thumb.style.display = "none";
+      setStatus(`${iconName} must be a PNG file.`, "error");
+      updateConvertState();
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    objectUrls.set(iconName, previewUrl);
+    thumb.src = previewUrl;
+    thumb.style.display = "block";
+
+    selectedFiles.set(iconName, file);
+    nameEl.textContent = file.name;
+    setStatus(`${iconName} loaded.`, "success");
+    updateConvertState();
+  });
+
+  return wrap;
+}
+
+function clearAll() {
+  selectedFiles.clear();
+  selectedItem = null;
+
+  objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  objectUrls.clear();
+
+  slotGrid.querySelectorAll(".slot").forEach(slot => {
+    slot.classList.remove("selected");
+    const input = slot.querySelector("input");
+    const nameEl = slot.querySelector(".slot-name");
+    const thumb = slot.querySelector(".thumb");
+    if (input) input.value = "";
+    if (nameEl) nameEl.textContent = "No file selected";
+    if (thumb) {
+      thumb.removeAttribute("src");
+      thumb.style.display = "none";
+    }
+  });
+
+  setStatus("Ready...");
+  updateConvertState();
+}
+
+for (const icon of ICONS) {
+  slotGrid.appendChild(makeSlot(icon));
+}
+
+convertBtn.addEventListener("click", async (e) => {
+  e.stopPropagation();
+  if (selectedFiles.size === 0) return;
+
+  convertBtn.disabled = true;
+  setStatus("Creating ZIP...");
+
+  try {
+    const zip = new JSZip();
+
+    for (const [iconName, file] of selectedFiles.entries()) {
+      zip.file(iconName, file);
+    }
+
+    const content = await zip.generateAsync({
+      type: "blob",
+      compression: "STORE"
+    });
+
+    let zipName = zipNameInput.value.trim() || "icons";
+    if (!zipName.toLowerCase().endsWith(".zip")) {
+      zipName += ".zip";
+    }
+
+    const downloadUrl = URL.createObjectURL(content);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download的的 = null;
+    downloadLink.download = zipName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+    setStatus(`Downloaded ${zipName} successfully!`, "success");
+  } catch (err) {
+    setStatus(err?.message || "Failed to create ZIP.", "error");
+  } finally {
+    updateConvertState();
+  }
+});
+
+clearBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  clearAll();
+});
+</script>
+</body>
+</html>
