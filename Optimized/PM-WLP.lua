@@ -127,11 +127,11 @@ local myHumanoid: Humanoid? = myCharacter and (myCharacter:FindFirstChildOfClass
 local myRootPart: BasePart? = myCharacter and (myCharacter:FindFirstChild("HumanoidRootPart") :: BasePart?) or nil
 
 local wallRaycastParams: RaycastParams = RaycastParams.new()
-wallRaycastParams.FilterType = Enum_RaycastFilterType.Exclude
+wallRaycastParams.FilterType = Enum_RaycastFilterType_Exclude
 wallRaycastParams.IgnoreWater = true
 
 local cornerRaycastParams: RaycastParams = RaycastParams.new()
-cornerRaycastParams.FilterType = Enum_RaycastFilterType.Exclude
+cornerRaycastParams.FilterType = Enum_RaycastFilterType_Exclude
 cornerRaycastParams.IgnoreWater = true
 
 local function updateRaycastFilter(): ()
