@@ -6,12 +6,22 @@
   <title>Overdrive H Addons</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Zalando+Sans+Expanded:wght@700&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="https://filho.wtf/Assets/%40addons/Code.png" fetchpriority="high">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Syne:wght@600;700&family=Zalando+Sans+Expanded:wght@700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+    }
+
+    :root {
+      --odh-main-x: 0px;
+      --odh-main-y: 0px;
+      --odh-sub-x: 0px;
+      --odh-sub-y: 0px;
+      --odh-scale: 1;
+      --odh-range: 380px;
     }
 
     html, body {
@@ -20,6 +30,15 @@
       color: #abb2bf;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow-x: hidden;
+    }
+
+    .top-sentinel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
     }
 
     .hero-container {
@@ -34,6 +53,7 @@
       z-index: 1;
       -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 45%, rgba(0, 0, 0, 0) 100%);
       mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 45%, rgba(0, 0, 0, 0) 100%);
+      contain: strict;
     }
 
     .hero-bg {
@@ -71,7 +91,18 @@
       -webkit-backdrop-filter: blur(12px);
       opacity: 0;
       pointer-events: none;
-      will-change: opacity;
+    }
+
+    .odh-js .top-nav-bg {
+      visibility: hidden;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .odh-js.odh-scrolled .top-nav-bg {
+      visibility: visible;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     @media (min-width: 768px) {
@@ -100,7 +131,6 @@
       line-height: 1;
       color: #ffffff;
       transform-origin: center center;
-      will-change: transform;
     }
 
     .title-sub {
@@ -112,7 +142,72 @@
       line-height: 1;
       color: #ffffff;
       transform-origin: center center;
+    }
+
+    .odh-scrolling .title-main,
+    .odh-scrolling .title-sub {
       will-change: transform;
+    }
+
+    .odh-measuring .title-main,
+    .odh-measuring .title-sub {
+      animation-name: none !important;
+      transform: none !important;
+    }
+
+    @keyframes odh-hero-main {
+      from {
+        transform: translate3d(var(--odh-main-x), var(--odh-main-y), 0) scale(var(--odh-scale));
+      }
+      to {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    @keyframes odh-hero-sub {
+      from {
+        transform: translate3d(var(--odh-sub-x), var(--odh-sub-y), 0) scale(var(--odh-scale));
+      }
+      to {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    @keyframes odh-nav-fade {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      @supports (animation-timeline: scroll(root block)) {
+        .odh-js .title-main {
+          animation-name: odh-hero-main;
+          animation-timing-function: linear;
+          animation-fill-mode: both;
+          animation-timeline: scroll(root block);
+          animation-range: 0 var(--odh-range);
+        }
+
+        .odh-js .title-sub {
+          animation-name: odh-hero-sub;
+          animation-timing-function: linear;
+          animation-fill-mode: both;
+          animation-timeline: scroll(root block);
+          animation-range: 0 var(--odh-range);
+        }
+
+        .odh-js .top-nav-bg {
+          animation-name: odh-nav-fade;
+          animation-timing-function: linear;
+          animation-fill-mode: both;
+          animation-timeline: scroll(root block);
+          animation-range: 0 var(--odh-range);
+        }
+      }
     }
 
     .hero-spacer {
@@ -136,7 +231,7 @@
       margin-bottom: 60px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       content-visibility: auto;
-      contain-intrinsic-size: 1px 400px;
+      contain-intrinsic-size: auto 600px;
     }
 
     .section-block:last-child {
@@ -178,6 +273,7 @@
       letter-spacing: -0.01em;
       background: linear-gradient(180deg, #ffffff 40%, #abb2bf 100%);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       line-height: 1.2;
     }
@@ -194,7 +290,7 @@
       margin-bottom: 36px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       content-visibility: auto;
-      contain-intrinsic-size: 1px 250px;
+      contain-intrinsic-size: auto 280px;
     }
 
     .instance-item:last-child {
@@ -251,6 +347,7 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
       overflow: hidden;
+      contain: content;
     }
 
     .code-header {
@@ -349,6 +446,13 @@
       color: #d19a66;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      .toggle-icon,
+      .code-toggle-btn {
+        transition: none;
+      }
+    }
+
     @media (min-width: 768px) {
       .main-container {
         padding: 40px 24px 120px;
@@ -367,6 +471,8 @@
 </head>
 <body>
 
+  <div class="top-sentinel" id="topSentinel" aria-hidden="true"></div>
+
   <div class="hero-container">
     <div class="hero-bg"></div>
   </div>
@@ -381,30 +487,31 @@
 
   <div class="hero-spacer"></div>
 
-  <main class="main-container">
+  <main class="main-container" id="content">
     <section class="section-block">
       <h2 class="section-name">
         <span class="section-num">[1]</span>
         <span class="section-title-text">Syntax</span>
       </h2>
       <p class="section-text">
-        <strong class="md-bold">Overdrive H</strong> Addons syntax is straightforward: <code class="inline-code"><span class="tok-var">odh_shared_plugins</span>.<span class="tok-func">AddSection</span>(<span class="serif-text">"Name"</span>)</code> creates a section container, and instance methods are invoked on that section via <code class="inline-code">section:<span class="tok-func">AddInstance</span>(<span class="serif-text">...</span>)</code>. Here is a basic example:
+        <strong class="md-bold">Overdrive H</strong> Addons syntax is straightforward: <code class="inline-code"><span class="tok-var">odh_shared_plugins</span>.<span class="tok-func">CreateTab</span>(<span class="serif-text">"Name"</span>, <span class="serif-text">"icon"</span>)</code> creates your own tab, <code class="inline-code">tab:<span class="tok-func">AddSection</span>(<span class="serif-text">"Name"</span>, <span class="serif-text">"Subtitle"</span>)</code> creates a section container inside it, and instance methods are invoked on that section via <code class="inline-code">section:<span class="tok-func">AddInstance</span>(<span class="serif-text">...</span>)</code>. Here is a basic example:
       </p>
       <div class="code-block-wrapper">
         <div class="code-header">
           <span class="code-lang">LUAU</span>
-          <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
         </div>
         <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
 
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
-my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"My Toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">bool</span>)
-    <span class="tok-keyword">if</span> bool <span class="tok-keyword">then</span>
+my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"My Toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">state</span>)
+    <span class="tok-keyword">if</span> state <span class="tok-keyword">then</span>
     <span class="tok-keyword">else</span>
     <span class="tok-keyword">end</span>
 <span class="tok-keyword">end</span>)</code></pre>
@@ -417,165 +524,230 @@ my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">
         <span class="section-title-text">Instances</span>
       </h2>
       <p class="section-text">
-        Every UI component created under your section is called an <strong class="md-bold">Instance</strong>. Below are all the instances and utilities available in <strong class="md-bold">Overdrive H</strong>, along with their parameters and how to call them.
+        Every UI component created under your section is called an <strong class="md-bold">Instance</strong>. Below are all the instances and utilities available in <strong class="md-bold">Overdrive H</strong>, along with their parameters, their return values, and the methods they expose.
       </p>
 
       <div class="instance-item">
-        <h3 class="instance-title">Section</h3>
+        <h3 class="instance-title">Tab</h3>
         <p class="section-text">
-          <strong class="md-bold">Section</strong> creates a new category container for holding all your addon's instances <span class="serif-text">(arg1: string)</span>.
+          <strong class="md-bold">CreateTab</strong> creates your own top-level tab that holds every section of your addon <span class="serif-text">(name: string, icon: string) &rarr; table</span>. The icon file name must always end with <code class="inline-code">.png</code>.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)</code></pre>
+
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Section</h3>
+        <p class="section-text">
+          <strong class="md-bold">AddSection</strong> is called on a tab and creates a new category container, with its own custom subtitle, for holding all your addon's instances <span class="serif-text">(name: string, subtitle: string) &rarr; table</span>.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">Label / TextLabel</h3>
         <p class="section-text">
-          <strong class="md-bold">Label</strong> (or <strong class="md-bold">TextLabel</strong>) creates static display text for credits, titles, or general information <span class="serif-text">(arg1: string)</span>.
+          <strong class="md-bold">Label</strong> (or <strong class="md-bold">TextLabel</strong>) creates static display text for credits, titles, or general information <span class="serif-text">(text: string, allow_edit: boolean) &rarr; table | void</span>. When <code class="inline-code"><span class="tok-param">allow_edit</span></code> is passed, it returns a table exposing <code class="inline-code">:<span class="tok-func">SetValue</span>(<span class="tok-param">text</span>)</code>, which replaces the label text with the provided string.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
-my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>)</code></pre>
+my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>)
+
+<span class="tok-keyword">local</span> label = my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>, <span class="tok-bool">true</span>)
+label:<span class="tok-func">SetValue</span>(<span class="tok-string">"Credits: @another_name"</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">Paragraph</h3>
         <p class="section-text">
-          <strong class="md-bold">Paragraph</strong> displays a multi-line formatted text block with a title and description <span class="serif-text">(arg1: string, arg2: string)</span>.
+          <strong class="md-bold">Paragraph</strong> displays a multi-line formatted text block with a title and description <span class="serif-text">(title: string, description: string, allow_edit: boolean) &rarr; table | void</span>. When <code class="inline-code"><span class="tok-param">allow_edit</span></code> is passed, it returns a table exposing <code class="inline-code">:<span class="tok-func">SetValue</span>(<span class="tok-param">text</span>)</code>, which replaces the description text with the provided string.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
-my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"Important Notice"</span>, <span class="tok-string">"Here is a detailed description of the addon features."</span>)</code></pre>
+my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"title"</span>, <span class="tok-string">"description"</span>)
+
+<span class="tok-keyword">local</span> paragraph = my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"title"</span>, <span class="tok-string">"description"</span>, <span class="tok-bool">true</span>)
+paragraph:<span class="tok-func">SetValue</span>(<span class="tok-string">"a brand new description"</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">Toggle</h3>
         <p class="section-text">
-          <strong class="md-bold">Toggle</strong> switches between active and inactive states, passing a boolean <code class="inline-code"><span class="tok-param">bool</span></code> to its callback <span class="serif-text">(arg1: string, arg2: function)</span>.
+          <strong class="md-bold">Toggle</strong> switches between active and inactive states, passing a boolean <code class="inline-code"><span class="tok-param">state</span></code> to its callback <span class="serif-text">(feature_name: string, callback: closure) &rarr; closure</span>. Calling the returned closure flips the toggle state and fires the callback with the new boolean.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
-my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">bool</span>)
-    <span class="tok-keyword">if</span> bool <span class="tok-keyword">then</span>
+<span class="tok-keyword">local</span> toggle = my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">state</span>)
+    <span class="tok-keyword">if</span> state <span class="tok-keyword">then</span>
         <span class="tok-func">print</span>(<span class="tok-string">"Toggled On"</span>)
     <span class="tok-keyword">else</span>
         <span class="tok-func">print</span>(<span class="tok-string">"Toggled Off"</span>)
     <span class="tok-keyword">end</span>
-<span class="tok-keyword">end</span>)</code></pre>
+<span class="tok-keyword">end</span>)
+
+<span class="tok-func">toggle</span>()</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">Slider</h3>
         <p class="section-text">
-          <strong class="md-bold">Slider</strong> provides an adjustable number bar with minimum, maximum, and default integers <span class="serif-text">(arg1: string, arg2: integer, arg3: integer, arg4: integer, arg5: function)</span>.
+          <strong class="md-bold">Slider</strong> provides an adjustable number bar with minimum, maximum, and default values <span class="serif-text">(feature_name: string, minimum: int | float, maximum: int | float, default: int | float, callback: closure) &rarr; table</span>. It returns a table exposing <code class="inline-code">:<span class="tok-func">SetValue</span>(<span class="tok-param">num</span>)</code>, which changes the slider value and fires the callback with the new number.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
-my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int</span>)
-    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
-<span class="tok-keyword">end</span>)</code></pre>
+<span class="tok-keyword">local</span> slider = my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int_or_float</span>)
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int_or_float .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
+<span class="tok-keyword">end</span>)
+
+slider:<span class="tok-func">SetValue</span>(<span class="tok-number">25</span>)</code></pre>
+        </div>
+      </div>
+
+      <div class="instance-item">
+        <h3 class="instance-title">Colorpicker</h3>
+        <p class="section-text">
+          <strong class="md-bold">Colorpicker</strong> allows picking a custom color, passing a Color3 value to the callback <span class="serif-text">(feature_name: string, default_color: Color3, callback: closure) &rarr; table</span>. It returns a table exposing <code class="inline-code">:<span class="tok-func">SetHexValue</span>(<span class="tok-param">hex</span>)</code> and <code class="inline-code">:<span class="tok-func">SetRGBValue</span>(<span class="tok-param">color</span>)</code>, which change the picked color and update every other property.
+        </p>
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-lang">LUAU</span>
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
+
+<span class="tok-keyword">local</span> colorpicker = my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"colorpicker"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">255</span>, <span class="tok-number">255</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color3rgb</span>)
+    <span class="tok-func">print</span>(color3rgb)
+<span class="tok-keyword">end</span>)
+
+colorpicker:<span class="tok-func">SetHexValue</span>(<span class="tok-string">"#FF0000"</span>)
+colorpicker:<span class="tok-func">SetRGBValue</span>(<span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">0</span>, <span class="tok-number">255</span>, <span class="tok-number">0</span>))</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">Dropdown</h3>
         <p class="section-text">
-          <strong class="md-bold">Dropdown</strong> lets the user choose an entry from a table. Returns an instance reference with <code class="inline-code">.Select()</code> and <code class="inline-code">.Change()</code> methods <span class="serif-text">(arg1: string, arg2: table, arg3: function)</span>.
+          <strong class="md-bold">Dropdown</strong> lets the user choose an entry from an array <span class="serif-text">(feature_name: string, default_list: array, callback: closure) &rarr; table</span>. It returns a table exposing <code class="inline-code">:<span class="tok-func">Select</span>(<span class="tok-param">text</span>)</code>, which selects an existing item from the current lists, and <code class="inline-code">:<span class="tok-func">ChangeItems</span>(<span class="tok-param">list</span>)</code>, which replaces the old items with the provided array items.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
 <span class="tok-keyword">local</span> dropdown = my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
     shared.<span class="tok-func">Notify</span>(selected, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)
 
-dropdown.Select(<span class="tok-string">"list #2"</span>)
-dropdown.Change({<span class="tok-string">"changed 1"</span>, <span class="tok-string">"changed 2"</span>})</code></pre>
+dropdown:<span class="tok-func">Select</span>(<span class="tok-string">"list #2"</span>)
+dropdown:<span class="tok-func">ChangeItems</span>({<span class="tok-string">"changed 1"</span>, <span class="tok-string">"changed 2"</span>})</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">PlayerDropdown</h3>
         <p class="section-text">
-          <strong class="md-bold">PlayerDropdown</strong> creates an automatic player selection dropdown passing the selected Player instance to the callback <span class="serif-text">(arg1: string, arg2: function)</span>.
+          <strong class="md-bold">PlayerDropdown</strong> creates an automatic player selection dropdown, passing the selected Player instance to the callback <span class="serif-text">(feature_name: string, callback: closure) &rarr; void</span>.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
-my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"make gay"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
-    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" is now a gay person."</span>, <span class="tok-number">1</span>)
+my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"select player"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
+    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" has been selected."</span>, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)</code></pre>
         </div>
       </div>
@@ -583,19 +755,20 @@ my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-
       <div class="instance-item">
         <h3 class="instance-title">TextBox</h3>
         <p class="section-text">
-          <strong class="md-bold">TextBox</strong> provides a text input field that passes submitted text to its callback <span class="serif-text">(arg1: string, arg2: function)</span>.
+          <strong class="md-bold">TextBox</strong> provides a text input field that passes the submitted text to its callback <span class="serif-text">(feature_name: string, callback: closure) &rarr; void</span>.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
 my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
     shared.<span class="tok-func">Notify</span>(text)
@@ -606,19 +779,20 @@ my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string"
       <div class="instance-item">
         <h3 class="instance-title">Button</h3>
         <p class="section-text">
-          <strong class="md-bold">Button</strong> triggers a direct callback function on click <span class="serif-text">(arg1: string, arg2: function)</span>.
+          <strong class="md-bold">Button</strong> triggers a direct callback function on click <span class="serif-text">(feature_name: string, callback: closure) &rarr; void</span>.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
 my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">"button"</span>, <span class="tok-keyword">function</span>()
     shared.<span class="tok-func">Notify</span>(<span class="tok-string">"this is a button"</span>, <span class="tok-number">2</span>)
@@ -629,19 +803,20 @@ my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">
       <div class="instance-item">
         <h3 class="instance-title">Keybind</h3>
         <p class="section-text">
-          <strong class="md-bold">Keybind</strong> registers a key that fires an action whenever pressed <span class="serif-text">(arg1: string, arg2: string, arg3: function)</span>.
+          <strong class="md-bold">Keybind</strong> registers a key that fires an action whenever pressed <span class="serif-text">(feature_name: string, default_key: string, callback: closure) &rarr; void</span>.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
 my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string">"keybind"</span>, <span class="tok-string">"U"</span>, <span class="tok-keyword">function</span>()
     shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Keybind test"</span>, <span class="tok-number">1</span>)
@@ -650,57 +825,15 @@ my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string"
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Colorpicker</h3>
-        <p class="section-text">
-          <strong class="md-bold">Colorpicker</strong> allows picking a custom color, passing a Color3 value to the callback <span class="serif-text">(name: string, default_color: Color3, callback: closure)</span>.
-        </p>
-        <div class="code-block-wrapper">
-          <div class="code-header">
-            <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-          </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
-
-my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"ESP Color"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">0</span>, <span class="tok-number">0</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color</span>)
-end)</code></pre>
-        </div>
-      </div>
-
-      <div class="instance-item">
-        <h3 class="instance-title">Create Hidden Instance</h3>
-        <p class="section-text">
-          <strong class="md-bold">create_hidden_instance</strong> creates an instance completely hidden in non-odh contexts without any trace <span class="serif-text">(arg1: string, arg2: Instance)</span>.
-        </p>
-        <div class="code-block-wrapper">
-          <div class="code-header">
-            <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-          </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-
-<span class="tok-keyword">local</span> part = shared.<span class="tok-func">create_hidden_instance</span>(<span class="tok-string">"Part"</span>, <span class="tok-var">workspace</span>)</code></pre>
-        </div>
-      </div>
-
-      <div class="instance-item">
         <h3 class="instance-title">Notifications</h3>
         <p class="section-text">
-          <strong class="md-bold">Notify</strong> pops up an Overdrive H notification banner with a message and an optional type <span class="serif-text">(text: string, type?: integer)</span>. Types: <code class="inline-code"><span class="tok-number">0</span></code> = Warning, <code class="inline-code"><span class="tok-number">1</span></code> = Error, <code class="inline-code"><span class="tok-number">2</span></code> = Success, <code class="inline-code"><span class="tok-number">3</span></code> = Information.
+          <strong class="md-bold">Notify</strong> pops up an Overdrive H notification banner with a message and an optional type <span class="serif-text">(text: string, type?: integer) &rarr; void</span>. Types: <code class="inline-code"><span class="tok-number">0</span></code> = Warning, <code class="inline-code"><span class="tok-number">1</span></code> = Error, <code class="inline-code"><span class="tok-number">2</span></code> = Success, <code class="inline-code"><span class="tok-number">3</span></code> = Information.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
@@ -712,26 +845,6 @@ shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Addon load
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Kick</h3>
-        <p class="section-text">
-          <strong class="md-bold">kick</strong> invokes the built-in Overdrive H custom player disconnection with an optional reason <span class="serif-text">(reason?: string)</span>.
-        </p>
-        <div class="code-block-wrapper">
-          <div class="code-header">
-            <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-          </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-
-shared.<span class="tok-func">kick</span>(<span class="tok-string">"reason"</span>)</code></pre>
-        </div>
-      </div>
-
-      <div class="instance-item">
         <h3 class="instance-title">Identifiers &amp; User Metadata</h3>
         <p class="section-text">
           <strong class="md-bold">Identifiers</strong> provide user tier booleans and environment metadata strings. <code class="inline-code"><span class="tok-var">is_premium_user</span></code>, <code class="inline-code"><span class="tok-var">is_exclusive_user</span></code>, and <code class="inline-code"><span class="tok-var">is_serverbooster_user</span></code> return <span class="serif-text">boolean (true / false)</span>; all other fields return <span class="serif-text">string</span>.
@@ -739,8 +852,8 @@ shared.<span class="tok-func">kick</span>(<span class="tok-string">"reason"</spa
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
@@ -767,42 +880,49 @@ shared.<span class="tok-func">kick</span>(<span class="tok-string">"reason"</spa
       <div class="instance-item">
         <h3 class="instance-title">Full Addon Blueprint</h3>
         <p class="section-text">
-          A comprehensive blueprint featuring all instances, utilities, notifications, hidden instances, custom kicks, and user metadata checks.
+          A comprehensive blueprint featuring your own tab, sections, every instance, their methods, notifications, and user metadata checks.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
           </div>
           <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
 
-<span class="tok-keyword">local</span> my_own_section = shared.<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>)
+<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+
+<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
 my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>)
+
 my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"title"</span>, <span class="tok-string">"description"</span>)
 
-my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">bool</span>)
-    <span class="tok-keyword">if</span> bool <span class="tok-keyword">then</span>
+my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">state</span>)
+    <span class="tok-keyword">if</span> state <span class="tok-keyword">then</span>
         <span class="tok-func">print</span>(<span class="tok-string">"Toggled On"</span>)
     <span class="tok-keyword">else</span>
         <span class="tok-func">print</span>(<span class="tok-string">"Toggled Off"</span>)
     <span class="tok-keyword">end</span>
 <span class="tok-keyword">end</span>)
 
-my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int</span>)
-    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
+my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int_or_float</span>)
+    shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int_or_float .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
 <span class="tok-keyword">end</span>)
 
-<span class="tok-keyword">local</span> dropdown = my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
+my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"colorpicker"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">255</span>, <span class="tok-number">255</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color3rgb</span>)
+    <span class="tok-func">print</span>(color3rgb)
+<span class="tok-keyword">end</span>)
+
+my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
     shared.<span class="tok-func">Notify</span>(selected, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)
 
-my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"make gay"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
-    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" is now a gay person."</span>, <span class="tok-number">1</span>)
+my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"select player"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
+    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" has been selected."</span>, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)
 
 my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
@@ -817,11 +937,6 @@ my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string"
     shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Keybind test"</span>, <span class="tok-number">1</span>)
 <span class="tok-keyword">end</span>)
 
-<span class="tok-keyword">local</span> part = shared.<span class="tok-func">create_hidden_instance</span>(<span class="tok-string">"Part"</span>, <span class="tok-var">workspace</span>)
-
-my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"ESP Color"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">0</span>, <span class="tok-number">0</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color</span>)
-end)
-
 <span class="tok-func">print</span>(<span class="tok-string">"Premium:"</span>, shared.<span class="tok-var">is_premium_user</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"Exclusive:"</span>, shared.<span class="tok-var">is_exclusive_user</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"ServerBooster:"</span>, shared.<span class="tok-var">is_serverbooster_user</span>)
@@ -835,96 +950,192 @@ end)
   </main>
 
   <script>
-    document.querySelectorAll('.code-toggle-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const wrapper = btn.closest('.code-block-wrapper');
-        if (wrapper) {
-          wrapper.classList.toggle('collapsed');
-        }
-      });
-    });
+    (function () {
+      "use strict";
 
-    const topNavBg = document.getElementById('topNavBg');
-    const brandWrapper = document.getElementById('brandWrapper');
-    const titleMain = document.getElementById('titleMain');
-    const titleSub = document.getElementById('titleSub');
+      var root = document.documentElement;
+      var content = document.getElementById("content");
+      var navBg = document.getElementById("topNavBg");
+      var brand = document.getElementById("brandWrapper");
+      var titleMain = document.getElementById("titleMain");
+      var titleSub = document.getElementById("titleSub");
+      var sentinel = document.getElementById("topSentinel");
 
-    let baseMeasurements = null;
-    let lastProgress = -1;
+      root.classList.add("odh-js");
 
-    function measureLayout() {
-      titleMain.style.transform = 'none';
-      titleSub.style.transform = 'none';
-
-      const mainRect = titleMain.getBoundingClientRect();
-      const subRect = titleSub.getBoundingClientRect();
-
-      baseMeasurements = {
-        mainCenter: { x: mainRect.left + mainRect.width / 2, y: mainRect.top + mainRect.height / 2 },
-        subCenter: { x: subRect.left + subRect.width / 2, y: subRect.top + subRect.height / 2 },
-        mainHeight: mainRect.height,
-        subHeight: subRect.height
-      };
-
-      lastProgress = -1;
-      renderScrollAnimation();
-    }
-
-    function renderScrollAnimation() {
-      if (!baseMeasurements) return;
-
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const scrollDistance = Math.min(viewportHeight * 0.55, 380);
-      const scrollY = window.scrollY || window.pageYOffset;
-      const progress = Math.min(Math.max(scrollY / scrollDistance, 0), 1);
-
-      if (progress === lastProgress) return;
-      lastProgress = progress;
-
-      const heroScale = viewportWidth < 600 ? 1.8 : 2.5;
-      const currentScale = 1 + (heroScale - 1) * (1 - progress);
-
-      const heroStackGap = 8;
-      const scaledMainHalfH = (baseMeasurements.mainHeight * heroScale) / 2;
-      const scaledSubHalfH = (baseMeasurements.subHeight * heroScale) / 2;
-
-      const heroMainY = viewportHeight / 2 - scaledSubHalfH - heroStackGap / 2;
-      const heroSubY = viewportHeight / 2 + scaledMainHalfH + heroStackGap / 2;
-
-      const deltaMainX = (viewportWidth / 2 - baseMeasurements.mainCenter.x) * (1 - progress);
-      const deltaMainY = (heroMainY - baseMeasurements.mainCenter.y) * (1 - progress);
-
-      const deltaSubX = (viewportWidth / 2 - baseMeasurements.subCenter.x) * (1 - progress);
-      const deltaSubY = (heroSubY - baseMeasurements.subCenter.y) * (1 - progress);
-
-      titleMain.style.transform = `translate3d(${deltaMainX}px, ${deltaMainY}px, 0) scale(${currentScale})`;
-      titleSub.style.transform = `translate3d(${deltaSubX}px, ${deltaSubY}px, 0) scale(${currentScale})`;
-
-      topNavBg.style.opacity = progress;
-    }
-
-    let isTicking = false;
-    window.addEventListener('scroll', () => {
-      if (!isTicking) {
-        requestAnimationFrame(() => {
-          renderScrollAnimation();
-          isTicking = false;
-        });
-        isTicking = true;
+      if (content) {
+        content.addEventListener("click", function (event) {
+          var node = event.target;
+          var btn = node && node.closest ? node.closest(".code-toggle-btn") : null;
+          if (!btn) {
+            return;
+          }
+          var wrapper = btn.closest(".code-block-wrapper");
+          if (!wrapper) {
+            return;
+          }
+          var collapsed = wrapper.classList.toggle("collapsed");
+          btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        }, { passive: true });
       }
-    }, { passive: true });
 
-    window.addEventListener('resize', measureLayout, { passive: true });
-    window.addEventListener('load', measureLayout);
-    document.addEventListener('DOMContentLoaded', measureLayout);
+      if (sentinel && typeof IntersectionObserver === "function") {
+        new IntersectionObserver(function (entries) {
+          var entry = entries[entries.length - 1];
+          root.classList.toggle("odh-scrolled", !entry.isIntersecting);
+        }, { threshold: 0 }).observe(sentinel);
+      } else {
+        root.classList.add("odh-scrolled");
+      }
 
-    if (brandWrapper) {
-      brandWrapper.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
+      if (!titleMain || !titleSub || !navBg) {
+        return;
+      }
+
+      var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+      if (brand) {
+        brand.addEventListener("click", function () {
+          if (reduceMotion) {
+            window.scrollTo(0, 0);
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }, { passive: true });
+      }
+
+      if (reduceMotion) {
+        navBg.style.opacity = "1";
+        return;
+      }
+
+      var nativeTimeline = !!(window.CSS && window.CSS.supports && window.CSS.supports("animation-timeline", "scroll(root block)"));
+
+      var base = null;
+      var range = 380;
+      var lastWidth = -1;
+      var lastHeight = -1;
+      var lastProgress = -1;
+      var ticking = false;
+      var scrollingId = 0;
+      var resizeQueued = false;
+
+      function render() {
+        if (!base) {
+          return;
+        }
+        var offset = window.scrollY || window.pageYOffset || 0;
+        var progress = offset / range;
+        if (progress < 0) {
+          progress = 0;
+        } else if (progress > 1) {
+          progress = 1;
+        }
+        progress = Math.round(progress * 1000) / 1000;
+        if (progress === lastProgress) {
+          return;
+        }
+        lastProgress = progress;
+
+        var inverse = 1 - progress;
+        var scale = 1 + (base.scale - 1) * inverse;
+
+        titleMain.style.transform = "translate3d(" + (base.mainX * inverse) + "px, " + (base.mainY * inverse) + "px, 0) scale(" + scale + ")";
+        titleSub.style.transform = "translate3d(" + (base.subX * inverse) + "px, " + (base.subY * inverse) + "px, 0) scale(" + scale + ")";
+        navBg.style.opacity = progress;
+      }
+
+      function measure() {
+        root.classList.add("odh-measuring");
+        var mainRect = titleMain.getBoundingClientRect();
+        var subRect = titleSub.getBoundingClientRect();
+        var viewportWidth = window.innerWidth;
+        var viewportHeight = window.innerHeight;
+        root.classList.remove("odh-measuring");
+
+        lastWidth = viewportWidth;
+        lastHeight = viewportHeight;
+        range = Math.min(viewportHeight * 0.55, 380);
+        if (range < 1) {
+          range = 1;
+        }
+
+        var heroScale = viewportWidth < 600 ? 1.8 : 2.5;
+        var stackGap = 8;
+        var scaledMainHalf = (mainRect.height * heroScale) / 2;
+        var scaledSubHalf = (subRect.height * heroScale) / 2;
+        var heroMainY = viewportHeight / 2 - scaledSubHalf - stackGap / 2;
+        var heroSubY = viewportHeight / 2 + scaledMainHalf + stackGap / 2;
+
+        base = {
+          mainX: viewportWidth / 2 - (mainRect.left + mainRect.width / 2),
+          mainY: heroMainY - (mainRect.top + mainRect.height / 2),
+          subX: viewportWidth / 2 - (subRect.left + subRect.width / 2),
+          subY: heroSubY - (subRect.top + subRect.height / 2),
+          scale: heroScale
+        };
+
+        var style = root.style;
+        style.setProperty("--odh-main-x", base.mainX + "px");
+        style.setProperty("--odh-main-y", base.mainY + "px");
+        style.setProperty("--odh-sub-x", base.subX + "px");
+        style.setProperty("--odh-sub-y", base.subY + "px");
+        style.setProperty("--odh-scale", String(base.scale));
+        style.setProperty("--odh-range", range + "px");
+
+        if (!nativeTimeline) {
+          lastProgress = -1;
+          render();
+        }
+      }
+
+      function onResize() {
+        if (resizeQueued) {
+          return;
+        }
+        resizeQueued = true;
+        requestAnimationFrame(function () {
+          resizeQueued = false;
+          var width = window.innerWidth;
+          var height = window.innerHeight;
+          if (width === lastWidth && Math.abs(height - lastHeight) < 120) {
+            return;
+          }
+          measure();
+        });
+      }
+
+      measure();
+
+      if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+        document.fonts.ready.then(measure).catch(function () {});
+      }
+
+      window.addEventListener("resize", onResize, { passive: true });
+      window.addEventListener("orientationchange", onResize, { passive: true });
+
+      if (!nativeTimeline) {
+        window.addEventListener("scroll", function () {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(function () {
+              ticking = false;
+              render();
+            });
+          }
+          if (scrollingId) {
+            clearTimeout(scrollingId);
+          } else {
+            root.classList.add("odh-scrolling");
+          }
+          scrollingId = setTimeout(function () {
+            scrollingId = 0;
+            root.classList.remove("odh-scrolling");
+          }, 160);
+        }, { passive: true });
+      }
+    })();
   </script>
 
 </body>
-  </html>
+</html>
