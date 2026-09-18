@@ -285,12 +285,38 @@
       margin-bottom: 20px;
     }
 
+    .callout-box {
+      background: #1e2227;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 4px solid #61afef;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+
+    .callout-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #ffffff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .callout-text {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: #abb2bf;
+    }
+
     .instance-item {
-      padding-bottom: 36px;
-      margin-bottom: 36px;
+      padding-bottom: 40px;
+      margin-bottom: 40px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       content-visibility: auto;
-      contain-intrinsic-size: auto 280px;
+      contain-intrinsic-size: auto 320px;
     }
 
     .instance-item:last-child {
@@ -302,10 +328,50 @@
     .instance-title {
       font-family: 'Syne', sans-serif;
       font-weight: 600;
-      font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+      font-size: clamp(1.15rem, 2.4vw, 1.4rem);
       color: #ffffff;
       margin-bottom: 8px;
       letter-spacing: -0.01em;
+    }
+
+    .spec-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      background: #1e2227;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 4px 10px;
+      color: #e5c07b;
+      margin-bottom: 14px;
+      word-break: break-word;
+    }
+
+    .methods-list {
+      list-style: none;
+      margin: 12px 0 18px 0;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .methods-list li {
+      position: relative;
+      padding-left: 18px;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      color: #abb2bf;
+    }
+
+    .methods-list li::before {
+      content: '↳';
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: #61afef;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
     }
 
     .md-bold {
@@ -348,6 +414,7 @@
       border-radius: 10px;
       overflow: hidden;
       contain: content;
+      margin-top: 12px;
     }
 
     .code-header {
@@ -416,6 +483,11 @@
       line-height: 1.65;
       color: #abb2bf;
       white-space: pre;
+    }
+
+    .tok-comment {
+      color: #5c6370;
+      font-style: italic;
     }
 
     .tok-keyword {
@@ -491,11 +563,21 @@
     <section class="section-block">
       <h2 class="section-name">
         <span class="section-num">[1]</span>
-        <span class="section-title-text">Syntax</span>
+        <span class="section-title-text">Syntax &amp; Architecture</span>
       </h2>
       <p class="section-text">
-        <strong class="md-bold">Overdrive H</strong> Addons syntax is straightforward: <code class="inline-code"><span class="tok-var">odh_shared_plugins</span>.<span class="tok-func">CreateTab</span>(<span class="serif-text">"Name"</span>, <span class="serif-text">"icon"</span>)</code> creates your own tab, <code class="inline-code">tab:<span class="tok-func">AddSection</span>(<span class="serif-text">"Name"</span>, <span class="serif-text">"Subtitle"</span>)</code> creates a section container inside it, and instance methods are invoked on that section via <code class="inline-code">section:<span class="tok-func">AddInstance</span>(<span class="serif-text">...</span>)</code>. Here is a basic example:
+        Every addon runs inside the Overdrive H environment and interacts directly with the global table <code class="inline-code"><span class="tok-var">odh_shared_plugins</span></code>. The UI hierarchy strictly follows a three-tier tree:
       </p>
+
+      <div class="callout-box">
+        <div class="callout-title">The Three-Tier Rule for Humans and AI Agents</div>
+        <p class="callout-text">
+          <strong class="md-bold">1. Tab</strong> is the top-level navigation container created via <code class="inline-code">shared.<span class="tok-func">CreateTab</span>(...)</code>.<br>
+          <strong class="md-bold">2. Section</strong> is a group container created strictly on a tab instance via <code class="inline-code">tab:<span class="tok-func">AddSection</span>(...)</code>.<br>
+          <strong class="md-bold">3. Instances</strong> (buttons, toggles, sliders, etc.) can <strong class="md-bold">only</strong> be attached to a section instance via <code class="inline-code">section:<span class="tok-func">Add...</span>(...)</code>.
+        </p>
+      </div>
+
       <div class="code-block-wrapper">
         <div class="code-header">
           <span class="code-lang">LUAU</span>
@@ -505,14 +587,22 @@
             </svg>
           </button>
         </div>
-        <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+        <pre class="code-block"><code><span class="tok-comment">--&gt; Overdrive H On Top.</span>
 
+<span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+
+<span class="tok-comment">-- Step 1: Create your Tab</span>
 <span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
+
+<span class="tok-comment">-- Step 2: Create a Section inside your Tab</span>
 <span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
 
+<span class="tok-comment">-- Step 3: Attach interactive UI instances to your Section</span>
 my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"My Toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">state</span>)
     <span class="tok-keyword">if</span> state <span class="tok-keyword">then</span>
+        <span class="tok-func">print</span>(<span class="tok-string">"Toggled On"</span>)
     <span class="tok-keyword">else</span>
+        <span class="tok-func">print</span>(<span class="tok-string">"Toggled Off"</span>)
     <span class="tok-keyword">end</span>
 <span class="tok-keyword">end</span>)</code></pre>
       </div>
@@ -521,17 +611,27 @@ my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">
     <section class="section-block">
       <h2 class="section-name">
         <span class="section-num">[2]</span>
-        <span class="section-title-text">Instances</span>
+        <span class="section-title-text">Instances &amp; API Reference</span>
       </h2>
       <p class="section-text">
-        Every UI component created under your section is called an <strong class="md-bold">Instance</strong>. Below are all the instances and utilities available in <strong class="md-bold">Overdrive H</strong>, along with their parameters, their return values, and the methods they expose.
+        Below is the exhaustive specification of every available method, constructor, parameter type, return value, and mutating method exposed in Overdrive H.
       </p>
 
       <div class="instance-item">
-        <h3 class="instance-title">Tab</h3>
+        <h3 class="instance-title">CreateTab</h3>
+        <div class="spec-badge">shared.CreateTab(&lt;string&gt; name, &lt;string&gt; icon): &lt;table&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">CreateTab</strong> creates your own top-level tab that holds every section of your addon <span class="serif-text">(name: string, icon: string) &rarr; table</span>. The icon file name must always end with <code class="inline-code">.png</code>.
+          Creates the top-level tab container that holds your sections.
         </p>
+        <div class="callout-box">
+          <div class="callout-title">Icon String Formatting Rule (Do Not Skip)</div>
+          <p class="callout-text">
+            1. Upload your icon as a <code class="inline-code">.png</code> image to a GitHub repository.<br>
+            2. Take the raw GitHub URL, e.g.: <code class="inline-code">https://raw.githubusercontent.com/axioriasolver/testplugin/refs/heads/main/icon.png</code><br>
+            3. Strip <code class="inline-code">https://raw.githubusercontent.com</code> from the front and strip <code class="inline-code">.png</code> from the end.<br>
+            4. The result must be: <code class="inline-code">"/axioriasolver/testplugin/refs/heads/main/icon"</code>
+          </p>
+        </div>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -548,9 +648,10 @@ my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Section</h3>
+        <h3 class="instance-title">AddSection</h3>
+        <div class="spec-badge">tab:AddSection(&lt;string&gt; name, &lt;string&gt; subtitle): &lt;table&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">AddSection</strong> is called on a tab and creates a new category container, with its own custom subtitle, for holding all your addon's instances <span class="serif-text">(name: string, subtitle: string) &rarr; table</span>.
+          Called directly on a tab object to create a titled category container with a customizable subtitle banner. All UI elements (labels, buttons, toggles, sliders, etc.) are parented to this section table.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
@@ -561,18 +662,19 @@ my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)</code></pre>
+          <pre class="code-block"><code><span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Label / TextLabel</h3>
+        <h3 class="instance-title">Label / AddLabel</h3>
+        <div class="spec-badge">section:AddLabel(&lt;string&gt; text, &lt;bool&gt; allow_edit): allow_edit ? &lt;table&gt; : &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Label</strong> (or <strong class="md-bold">TextLabel</strong>) creates static display text for credits, titles, or general information <span class="serif-text">(text: string, allow_edit: boolean) &rarr; table | void</span>. When <code class="inline-code"><span class="tok-param">allow_edit</span></code> is passed, it returns a table exposing <code class="inline-code">:<span class="tok-func">SetValue</span>(<span class="tok-param">text</span>)</code>, which replaces the label text with the provided string.
+          Creates a single-line static or dynamic text label. If <code class="inline-code"><span class="tok-param">allow_edit</span></code> is <code class="inline-code"><span class="tok-bool">true</span></code>, it returns a controller table with mutating methods. If omitted or <code class="inline-code"><span class="tok-bool">false</span></code>, it returns <code class="inline-code"><span class="tok-keyword">nil</span></code>.
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">:<span class="tok-func">SetValue</span>(&lt;string&gt; text): &lt;void&gt;</code> &mdash; Modifies the displayed label text to the newly provided string.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -582,22 +684,24 @@ my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
+          <pre class="code-block"><code><span class="tok-comment">-- Static label (cannot be updated programmatically)</span>
 my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>)
 
+<span class="tok-comment">-- Editable label (returns controller with :SetValue)</span>
 <span class="tok-keyword">local</span> label = my_own_section:<span class="tok-func">AddLabel</span>(<span class="tok-string">"Credits: @my_name"</span>, <span class="tok-bool">true</span>)
 label:<span class="tok-func">SetValue</span>(<span class="tok-string">"Credits: @another_name"</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Paragraph</h3>
+        <h3 class="instance-title">Paragraph / AddParagraph</h3>
+        <div class="spec-badge">section:AddParagraph(&lt;string&gt; title, &lt;string&gt; description, &lt;bool&gt; allow_edit): allow_edit ? &lt;table&gt; : &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Paragraph</strong> displays a multi-line formatted text block with a title and description <span class="serif-text">(title: string, description: string, allow_edit: boolean) &rarr; table | void</span>. When <code class="inline-code"><span class="tok-param">allow_edit</span></code> is passed, it returns a table exposing <code class="inline-code">:<span class="tok-func">SetValue</span>(<span class="tok-param">text</span>)</code>, which replaces the description text with the provided string.
+          Creates a multi-line formatted content box with an authoritative title and descriptive text body. If <code class="inline-code"><span class="tok-param">allow_edit</span></code> is <code class="inline-code"><span class="tok-bool">true</span></code>, it returns a controller table.
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">:<span class="tok-func">SetValue</span>(&lt;string&gt; text): &lt;void&gt;</code> &mdash; Modifies the description body text to the newly provided string.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -607,22 +711,24 @@ label:<span class="tok-func">SetValue</span>(<span class="tok-string">"Credits: 
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
+          <pre class="code-block"><code><span class="tok-comment">-- Static paragraph</span>
 my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"title"</span>, <span class="tok-string">"description"</span>)
 
+<span class="tok-comment">-- Editable paragraph (returns controller with :SetValue)</span>
 <span class="tok-keyword">local</span> paragraph = my_own_section:<span class="tok-func">AddParagraph</span>(<span class="tok-string">"title"</span>, <span class="tok-string">"description"</span>, <span class="tok-bool">true</span>)
 paragraph:<span class="tok-func">SetValue</span>(<span class="tok-string">"a brand new description"</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Toggle</h3>
+        <h3 class="instance-title">Toggle / AddToggle</h3>
+        <div class="spec-badge">section:AddToggle(&lt;string&gt; feature_name, &lt;closure&gt; callback): &lt;closure&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Toggle</strong> switches between active and inactive states, passing a boolean <code class="inline-code"><span class="tok-param">state</span></code> to its callback <span class="serif-text">(feature_name: string, callback: closure) &rarr; closure</span>. Calling the returned closure flips the toggle state and fires the callback with the new boolean.
+          Creates a binary on/off switch. Invokes <code class="inline-code"><span class="tok-param">callback</span>(<span class="tok-param">state</span>: <span class="tok-bool">boolean</span>)</code> whenever clicked by the user. <strong class="md-bold">Crucial:</strong> It returns a closure function. Calling this returned closure programmatically toggles the state and fires the callback.
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">(): &lt;void&gt;</code> &mdash; Inverts the toggle state and invokes the registered callback with the updated boolean state.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -632,11 +738,7 @@ paragraph:<span class="tok-func">SetValue</span>(<span class="tok-string">"a bra
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-<span class="tok-keyword">local</span> toggle = my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">state</span>)
+          <pre class="code-block"><code><span class="tok-keyword">local</span> toggle = my_own_section:<span class="tok-func">AddToggle</span>(<span class="tok-string">"toggle"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">state</span>)
     <span class="tok-keyword">if</span> state <span class="tok-keyword">then</span>
         <span class="tok-func">print</span>(<span class="tok-string">"Toggled On"</span>)
     <span class="tok-keyword">else</span>
@@ -644,15 +746,20 @@ paragraph:<span class="tok-func">SetValue</span>(<span class="tok-string">"a bra
     <span class="tok-keyword">end</span>
 <span class="tok-keyword">end</span>)
 
+<span class="tok-comment">-- Flip state programmatically:</span>
 <span class="tok-func">toggle</span>()</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Slider</h3>
+        <h3 class="instance-title">Slider / AddSlider</h3>
+        <div class="spec-badge">section:AddSlider(&lt;string&gt; feature_name, &lt;int|float&gt; minimum, &lt;int|float&gt; maximum, &lt;int|float&gt; default, &lt;closure&gt; callback): &lt;table&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Slider</strong> provides an adjustable number bar with minimum, maximum, and default values <span class="serif-text">(feature_name: string, minimum: int | float, maximum: int | float, default: int | float, callback: closure) &rarr; table</span>. It returns a table exposing <code class="inline-code">:<span class="tok-func">SetValue</span>(<span class="tok-param">num</span>)</code>, which changes the slider value and fires the callback with the new number.
+          Creates an interactive draggable numeric slider bounded between minimum and maximum values. Fires <code class="inline-code"><span class="tok-param">callback</span>(<span class="tok-param">value</span>: <span class="tok-number">number</span>)</code> when changed.
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">:<span class="tok-func">SetValue</span>(&lt;int|float&gt; num): &lt;void&gt;</code> &mdash; Programmatically sets the slider value, moves the thumb, and invokes the callback with the new number.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -662,23 +769,25 @@ paragraph:<span class="tok-func">SetValue</span>(<span class="tok-string">"a bra
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-<span class="tok-keyword">local</span> slider = my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int_or_float</span>)
+          <pre class="code-block"><code><span class="tok-keyword">local</span> slider = my_own_section:<span class="tok-func">AddSlider</span>(<span class="tok-string">"slider"</span>, <span class="tok-number">10</span>, <span class="tok-number">30</span>, <span class="tok-number">20</span>, <span class="tok-keyword">function</span>(<span class="tok-param">int_or_float</span>)
     shared.<span class="tok-func">Notify</span>(<span class="tok-string">"the computer process is at "</span> .. int_or_float .. <span class="tok-string">"%"</span>, <span class="tok-number">3</span>)
 <span class="tok-keyword">end</span>)
 
+<span class="tok-comment">-- Set value programmatically:</span>
 slider:<span class="tok-func">SetValue</span>(<span class="tok-number">25</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Colorpicker</h3>
+        <h3 class="instance-title">Colorpicker / AddColorpicker</h3>
+        <div class="spec-badge">section:AddColorpicker(&lt;string&gt; feature_name, &lt;color3&gt; default_color, &lt;closure&gt; callback): &lt;table&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Colorpicker</strong> allows picking a custom color, passing a Color3 value to the callback <span class="serif-text">(feature_name: string, default_color: Color3, callback: closure) &rarr; table</span>. It returns a table exposing <code class="inline-code">:<span class="tok-func">SetHexValue</span>(<span class="tok-param">hex</span>)</code> and <code class="inline-code">:<span class="tok-func">SetRGBValue</span>(<span class="tok-param">color</span>)</code>, which change the picked color and update every other property.
+          Renders an RGB color picker dialog. Fires <code class="inline-code"><span class="tok-param">callback</span>(<span class="tok-param">color</span>: <span class="tok-var">Color3</span>)</code> whenever a color is selected.
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">:<span class="tok-func">SetHexValue</span>(&lt;string&gt; hex): &lt;void&gt;</code> &mdash; Updates the picker value using a hex string (e.g., <code class="inline-code"><span class="tok-string">"#FF0000"</span></code>) and updates all associated properties.</li>
+          <li><code class="inline-code">:<span class="tok-func">SetRGBValue</span>(&lt;color3&gt; color): &lt;void&gt;</code> &mdash; Updates the picker value using a <code class="inline-code"><span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>()</code> object and synchronizes UI state.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -688,11 +797,7 @@ slider:<span class="tok-func">SetValue</span>(<span class="tok-number">25</span>
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-<span class="tok-keyword">local</span> colorpicker = my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"colorpicker"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">255</span>, <span class="tok-number">255</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color3rgb</span>)
+          <pre class="code-block"><code><span class="tok-keyword">local</span> colorpicker = my_own_section:<span class="tok-func">AddColorpicker</span>(<span class="tok-string">"colorpicker"</span>, <span class="tok-var">Color3</span>.<span class="tok-func">fromRGB</span>(<span class="tok-number">255</span>, <span class="tok-number">255</span>, <span class="tok-number">255</span>), <span class="tok-keyword">function</span>(<span class="tok-param">color3rgb</span>)
     <span class="tok-func">print</span>(color3rgb)
 <span class="tok-keyword">end</span>)
 
@@ -702,10 +807,15 @@ colorpicker:<span class="tok-func">SetRGBValue</span>(<span class="tok-var">Colo
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Dropdown</h3>
+        <h3 class="instance-title">Dropdown / AddDropdown</h3>
+        <div class="spec-badge">section:AddDropdown(&lt;string&gt; feature_name, &lt;array&gt; default_list, &lt;closure&gt; callback): &lt;table&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Dropdown</strong> lets the user choose an entry from an array <span class="serif-text">(feature_name: string, default_list: array, callback: closure) &rarr; table</span>. It returns a table exposing <code class="inline-code">:<span class="tok-func">Select</span>(<span class="tok-param">text</span>)</code>, which selects an existing item from the current lists, and <code class="inline-code">:<span class="tok-func">ChangeItems</span>(<span class="tok-param">list</span>)</code>, which replaces the old items with the provided array items.
+          Provides a single-choice expandable selection list populated with custom string items. Fires <code class="inline-code"><span class="tok-param">callback</span>(<span class="tok-param">selected_item</span>: <span class="tok-string">string</span>)</code> on choice.
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">:<span class="tok-func">Select</span>(&lt;string&gt; text): &lt;void&gt;</code> &mdash; Selects an existing item from the current list programmatically.</li>
+          <li><code class="inline-code">:<span class="tok-func">ChangeItems</span>(&lt;array&gt; list): &lt;void&gt;</code> &mdash; Wipes old options and replaces them with the new array of string choices.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -715,11 +825,7 @@ colorpicker:<span class="tok-func">SetRGBValue</span>(<span class="tok-var">Colo
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-<span class="tok-keyword">local</span> dropdown = my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
+          <pre class="code-block"><code><span class="tok-keyword">local</span> dropdown = my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string">"dropdown"</span>, {<span class="tok-string">"list #1"</span>, <span class="tok-string">"list #2"</span>}, <span class="tok-keyword">function</span>(<span class="tok-param">selected</span>)
     shared.<span class="tok-func">Notify</span>(selected, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)
 
@@ -729,9 +835,10 @@ dropdown:<span class="tok-func">ChangeItems</span>({<span class="tok-string">"ch
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">PlayerDropdown</h3>
+        <h3 class="instance-title">PlayerDropdown / AddPlayerDropdown</h3>
+        <div class="spec-badge">section:AddPlayerDropdown(&lt;string&gt; feature_name, &lt;closure&gt; callback): &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">PlayerDropdown</strong> creates an automatic player selection dropdown, passing the selected Player instance to the callback <span class="serif-text">(feature_name: string, callback: closure) &rarr; void</span>.
+          An automated player list dropdown that continuously synchronizes with players currently in the Roblox server. When an entry is chosen, it directly passes the target <strong class="md-bold">Player Instance</strong> (not merely a string) to the callback.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
@@ -742,20 +849,17 @@ dropdown:<span class="tok-func">ChangeItems</span>({<span class="tok-string">"ch
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"select player"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
-    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" has been selected."</span>, <span class="tok-number">2</span>)
+          <pre class="code-block"><code>my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"make gay"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
+    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" is now a gay person."</span>, <span class="tok-number">1</span>)
 <span class="tok-keyword">end</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">TextBox</h3>
+        <h3 class="instance-title">TextBox / AddTextBox</h3>
+        <div class="spec-badge">section:AddTextBox(&lt;string&gt; feature_name, &lt;closure&gt; callback): &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">TextBox</strong> provides a text input field that passes the submitted text to its callback <span class="serif-text">(feature_name: string, callback: closure) &rarr; void</span>.
+          Provides a user text field for free-form string input. Fires <code class="inline-code"><span class="tok-param">callback</span>(<span class="tok-param">text</span>: <span class="tok-string">string</span>)</code> when the user commits/submits the text.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
@@ -766,20 +870,17 @@ my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
+          <pre class="code-block"><code>my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
     shared.<span class="tok-func">Notify</span>(text)
 <span class="tok-keyword">end</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Button</h3>
+        <h3 class="instance-title">Button / AddButton</h3>
+        <div class="spec-badge">section:AddButton(&lt;string&gt; feature_name, &lt;closure&gt; callback): &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Button</strong> triggers a direct callback function on click <span class="serif-text">(feature_name: string, callback: closure) &rarr; void</span>.
+          Creates a clickable trigger button. Fires <code class="inline-code"><span class="tok-param">callback</span>()</code> immediately upon click.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
@@ -790,20 +891,17 @@ my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string"
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">"button"</span>, <span class="tok-keyword">function</span>()
+          <pre class="code-block"><code>my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">"button"</span>, <span class="tok-keyword">function</span>()
     shared.<span class="tok-func">Notify</span>(<span class="tok-string">"this is a button"</span>, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Keybind</h3>
+        <h3 class="instance-title">Keybind / AddKeybind</h3>
+        <div class="spec-badge">section:AddKeybind(&lt;string&gt; feature_name, &lt;string&gt; default_key, &lt;closure&gt; callback): &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Keybind</strong> registers a key that fires an action whenever pressed <span class="serif-text">(feature_name: string, default_key: string, callback: closure) &rarr; void</span>.
+          Registers a rebindable keyboard shortcut. Fires <code class="inline-code"><span class="tok-param">callback</span>()</code> whenever the user presses the assigned key.
         </p>
         <div class="code-block-wrapper">
           <div class="code-header">
@@ -814,21 +912,24 @@ my_own_section:<span class="tok-func">AddButton</span>(<span class="tok-string">
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-<span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
-<span class="tok-keyword">local</span> my_own_section = my_own_tab:<span class="tok-func">AddSection</span>(<span class="tok-string">"Example Addon"</span>, <span class="tok-string">"CUSTOM SUBTITLE"</span>)
-
-my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string">"keybind"</span>, <span class="tok-string">"U"</span>, <span class="tok-keyword">function</span>()
+          <pre class="code-block"><code>my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string">"keybind"</span>, <span class="tok-string">"U"</span>, <span class="tok-keyword">function</span>()
     shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Keybind test"</span>, <span class="tok-number">1</span>)
 <span class="tok-keyword">end</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
-        <h3 class="instance-title">Notifications</h3>
+        <h3 class="instance-title">Notifications / Notify</h3>
+        <div class="spec-badge">shared.Notify(&lt;string&gt; text, &lt;integer&gt; type?): &lt;void&gt;</div>
         <p class="section-text">
-          <strong class="md-bold">Notify</strong> pops up an Overdrive H notification banner with a message and an optional type <span class="serif-text">(text: string, type?: integer) &rarr; void</span>. Types: <code class="inline-code"><span class="tok-number">0</span></code> = Warning, <code class="inline-code"><span class="tok-number">1</span></code> = Error, <code class="inline-code"><span class="tok-number">2</span></code> = Success, <code class="inline-code"><span class="tok-number">3</span></code> = Information.
+          Pops up an integrated Overdrive H notification banner on screen. The integer <code class="inline-code"><span class="tok-param">type</span></code> parameter controls banner styling and icon:
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code"><span class="tok-number">0</span></code> &mdash; Warning</li>
+          <li><code class="inline-code"><span class="tok-number">1</span></code> &mdash; Error</li>
+          <li><code class="inline-code"><span class="tok-number">2</span></code> &mdash; Success</li>
+          <li><code class="inline-code"><span class="tok-number">3</span></code> &mdash; Information</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -838,17 +939,25 @@ my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string"
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-
-shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Addon loaded successfully!"</span>, <span class="tok-number">2</span>)</code></pre>
+          <pre class="code-block"><code>shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Addon loaded successfully!"</span>, <span class="tok-number">2</span>)</code></pre>
         </div>
       </div>
 
       <div class="instance-item">
         <h3 class="instance-title">Identifiers &amp; User Metadata</h3>
+        <div class="spec-badge">shared.&lt;field_name&gt;: boolean | string</div>
         <p class="section-text">
-          <strong class="md-bold">Identifiers</strong> provide user tier booleans and environment metadata strings. <code class="inline-code"><span class="tok-var">is_premium_user</span></code>, <code class="inline-code"><span class="tok-var">is_exclusive_user</span></code>, and <code class="inline-code"><span class="tok-var">is_serverbooster_user</span></code> return <span class="serif-text">boolean (true / false)</span>; all other fields return <span class="serif-text">string</span>.
+          Provides real-time environment metadata, hardware verification, and user tier privilege booleans:
         </p>
+        <ul class="methods-list">
+          <li><code class="inline-code">shared.<span class="tok-var">is_premium_user</span></code> &mdash; <span class="serif-text">boolean</span>: whether user has Premium tier.</li>
+          <li><code class="inline-code">shared.<span class="tok-var">is_exclusive_user</span></code> &mdash; <span class="serif-text">boolean</span>: whether user has Exclusive tier.</li>
+          <li><code class="inline-code">shared.<span class="tok-var">is_serverbooster_user</span></code> &mdash; <span class="serif-text">boolean</span>: whether user is boosting the server.</li>
+          <li><code class="inline-code">shared.<span class="tok-var">discord_name</span></code> &mdash; <span class="serif-text">string</span>: user's authenticated Discord username.</li>
+          <li><code class="inline-code">shared.<span class="tok-var">discord_id</span></code> &mdash; <span class="serif-text">string</span>: user's Discord snowflake ID.</li>
+          <li><code class="inline-code">shared.<span class="tok-var">executor</span></code> &mdash; <span class="serif-text">string</span>: client environment / executor identifier.</li>
+          <li><code class="inline-code">shared.<span class="tok-var">hwid</span></code> &mdash; <span class="serif-text">string</span>: unique hardware identifier hash.</li>
+        </ul>
         <div class="code-block-wrapper">
           <div class="code-header">
             <span class="code-lang">LUAU</span>
@@ -858,9 +967,7 @@ shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Addon load
               </svg>
             </button>
           </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
-
-<span class="tok-func">print</span>(<span class="tok-string">"Premium:"</span>, shared.<span class="tok-var">is_premium_user</span>)
+          <pre class="code-block"><code><span class="tok-func">print</span>(<span class="tok-string">"Premium:"</span>, shared.<span class="tok-var">is_premium_user</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"Exclusive:"</span>, shared.<span class="tok-var">is_exclusive_user</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"ServerBooster:"</span>, shared.<span class="tok-var">is_serverbooster_user</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"Discord Name:"</span>, shared.<span class="tok-var">discord_name</span>)
@@ -874,24 +981,24 @@ shared.<span class="tok-func">Notify</span>(<span class="tok-string">"Addon load
     <section class="section-block">
       <h2 class="section-name">
         <span class="section-num">[3]</span>
-        <span class="section-title-text">Examples</span>
+        <span class="section-title-text">Complete Reference Blueprint</span>
       </h2>
+      <p class="section-text">
+        Ready-to-run master template incorporating every single instance, callback parameter, return value method, and identifier:
+      </p>
 
-      <div class="instance-item">
-        <h3 class="instance-title">Full Addon Blueprint</h3>
-        <p class="section-text">
-          A comprehensive blueprint featuring your own tab, sections, every instance, their methods, notifications, and user metadata checks.
-        </p>
-        <div class="code-block-wrapper">
-          <div class="code-header">
-            <span class="code-lang">LUAU</span>
-            <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-          </div>
-          <pre class="code-block"><code><span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
+      <div class="code-block-wrapper">
+        <div class="code-header">
+          <span class="code-lang">LUAU</span>
+          <button class="code-toggle-btn" type="button" aria-label="Toggle code block" aria-expanded="true">
+            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+        <pre class="code-block"><code><span class="tok-comment">--&gt; Overdrive H On Top.</span>
+
+<span class="tok-keyword">local</span> shared = <span class="tok-var">odh_shared_plugins</span>
 
 <span class="tok-keyword">local</span> my_own_tab = shared.<span class="tok-func">CreateTab</span>(<span class="tok-string">"My Plugin"</span>, <span class="tok-string">"/axioriasolver/testplugin/refs/heads/main/icon"</span>)
 
@@ -921,8 +1028,8 @@ my_own_section:<span class="tok-func">AddDropdown</span>(<span class="tok-string
     shared.<span class="tok-func">Notify</span>(selected, <span class="tok-number">2</span>)
 <span class="tok-keyword">end</span>)
 
-my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"select player"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
-    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" has been selected."</span>, <span class="tok-number">2</span>)
+my_own_section:<span class="tok-func">AddPlayerDropdown</span>(<span class="tok-string">"make gay"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">player</span>)
+    shared.<span class="tok-func">Notify</span>(player.<span class="tok-var">Name</span> .. <span class="tok-string">" is now a gay person."</span>, <span class="tok-number">1</span>)
 <span class="tok-keyword">end</span>)
 
 my_own_section:<span class="tok-func">AddTextBox</span>(<span class="tok-string">"textbox"</span>, <span class="tok-keyword">function</span>(<span class="tok-param">text</span>)
@@ -944,7 +1051,6 @@ my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string"
 <span class="tok-func">print</span>(<span class="tok-string">"Discord ID:"</span>, shared.<span class="tok-var">discord_id</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"Executor:"</span>, shared.<span class="tok-var">executor</span>)
 <span class="tok-func">print</span>(<span class="tok-string">"HWID:"</span>, shared.<span class="tok-var">hwid</span>)</code></pre>
-        </div>
       </div>
     </section>
   </main>
@@ -1138,4 +1244,4 @@ my_own_section:<span class="tok-func">AddKeybind</span>(<span class="tok-string"
   </script>
 
 </body>
-</html>
+  </html>
