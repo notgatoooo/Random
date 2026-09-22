@@ -23,6 +23,9 @@
         #status {
             font-size: 14px;
             color: #888;
+            max-width: 90vw;
+            text-align: center;
+            word-break: break-word;
         }
     </style>
 </head>
@@ -47,10 +50,20 @@
         let audioSourceNode = null;
         let audioDestNode = null;
 
+        function showErm(err) {
+            console.error(err);
+            const msg = err?.message || err?.name || err?.error?.message || err?.error?.name || (typeof err === 'string' ? err : 'render failed');
+            status.textContent = `erm: ${msg}`;
+        }
+
         window.addEventListener('error', (e) => {
             console.error(e);
-            if (status.textContent !== 'keys' && status.textContent !== 'erm') {
-                status.textContent = isRendering ? 'erm' : 'uh';
+            if (!status.textContent.startsWith('keys') && !status.textContent.startsWith('erm')) {
+                if (isRendering) {
+                    showErm(e.error || e.message || e);
+                } else {
+                    status.textContent = 'uh';
+                }
             }
         });
 
@@ -97,7 +110,7 @@
                         if (cand.includes('typ srflx')) {
                             meta.wanType = 'Full-Cone / Symmetric NAT';
                         }
-                        const match = cand.match(/\b(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b/);
+                        const match = cand.match(/\b(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b/);
                         if (match) {
                             const segs = match[1].split('.');
                             meta.gateway = `${segs[0]}.${segs[1]}.${segs[2]}.1`;
@@ -278,8 +291,7 @@
                         }
                     }
                 } catch (e) {
-                    console.error(e);
-                    status.textContent = 'erm';
+                    showErm(e);
                     return;
                 }
             }
@@ -301,8 +313,7 @@
                 recorder = createRecorder(stream);
 
                 recorder.onerror = (e) => {
-                    console.error(e);
-                    status.textContent = 'erm';
+                    showErm(e.error || e);
                 };
 
                 recorder.ondataavailable = e => {
@@ -312,7 +323,7 @@
                 recorder.onstop = () => {
                     try {
                         if (!chunks.length) {
-                            status.textContent = 'erm';
+                            showErm('no frames captured');
                             return;
                         }
                         const elapsed = Math.round(performance.now() - startTime);
@@ -323,8 +334,7 @@
                         a.click();
                         status.textContent = `Sucessfully Rendered in ${elapsed}ms.`;
                     } catch (e) {
-                        console.error(e);
-                        status.textContent = 'erm';
+                        showErm(e);
                     }
                 };
 
@@ -335,8 +345,7 @@
 
                 render();
             } catch (e) {
-                console.error(e);
-                status.textContent = 'erm';
+                showErm(e);
             }
         }
 
@@ -355,7 +364,7 @@
                 lines = info;
                 video.src = blobUrl;
 
-                video.onloadedmetadata = () => {
+                const handleLoaded = () => {
                     const playPromise = video.play();
                     if (playPromise !== undefined) {
                         playPromise.then(() => {
@@ -369,13 +378,18 @@
                                 video.play().then(() => {
                                     startRender();
                                 }).catch((e) => {
-                                    console.error(e);
-                                    status.textContent = 'erm';
+                                    showErm(e);
                                 });
                             }, { once: true });
                         });
                     }
                 };
+
+                if (video.readyState >= 1) {
+                    handleLoaded();
+                } else {
+                    video.onloadedmetadata = handleLoaded;
+                }
 
                 video.onerror = (e) => {
                     console.error(e);
