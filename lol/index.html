@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>lol</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 16px;
+        }
+        canvas {
+            max-width: 95vw;
+            max-height: 85vh;
+        }
+        #status {
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    <div id="status">Getting Video...</div>
+    <video id="video" crossorigin="anonymous" playsinline style="display:none;"></video>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const status = document.getElementById('status');
+
+        let recorder;
+        let chunks = [];
+        let lines = [];
+        let startTime = 0;
+        let isRendering = false;
+
+        window.addEventListener('error', () => {
+            if (status.textContent !== 'keys' && status.textContent !== 'erm') {
+                status.textContent = isRendering ? 'erm' : 'uh';
+            }
+        });
+
+        function getDevice() {
+            const ua = navigator.userAgent;
+            if (/Android/i.test(ua)) return 'Generic Android';
+            if (/Windows/i.test(ua)) return 'Generic Windows';
+            if (/iPhone|iPad|iPod|Macintosh/i.test(ua)) return 'Apple';
+            if (/Linux/i.test(ua)) return 'Generic Linux';
+            return 'Other';
+        }
+
+        function getNetworkMeta() {
+            return new Promise(resolve => {
+                let meta = {
+                    gateway: '192.168.1.254',
+                    subnet: '255.255.255.0',
+                    wanType: 'Private Nat'
+                };
+
+                if (navigator.connection) {
+                    if (navigator.connection.type) {
+                        meta.wanType = navigator.connection.type.toUpperCase();
+                    } else if (navigator.connection.effectiveType) {
+                        meta.wanType = navigator.connection.effectiveType.toUpperCase() + ' NAT';
+                    }
+                }
+
+                if (!window.RTCPeerConnection) return resolve(meta);
+
+                try {
+                    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                    pc.createDataChannel('');
+                    pc.createOffer().then(o => pc.setLocalDescription(o)).catch(() => resolve(meta));
+
+                    const timer = setTimeout(() => {
+                        try { pc.close(); } catch (e) {}
+                        resolve(meta);
+                    }, 600);
+
+                    pc.onicecandidate = e => {
+                        if (!e || !e.candidate) return;
+                        const cand = e.candidate.candidate;
+                        if (cand.includes('typ srflx')) {
+                            meta.wanType = 'Full-Cone / Symmetric NAT';
+                        }
+                        const match = cand.match(/\b(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b/);
+                        if (match) {
+                            const segs = match[1].split('.');
+                            meta.gateway = `${segs[0]}.${segs[1]}.${segs[2]}.1`;
+                            clearTimeout(timer);
+                            try { pc.close(); } catch (err) {}
+                            resolve(meta);
+                        }
+                    };
+                } catch (e) {
+                    resolve(meta);
+                }
+            });
+        }
+
+        async function loadInfo() {
+            let ip = '92.52.15.200';
+            let lat = '40.5012';
+            let lon = '12.2035';
+            let routerVendor = 'TP-Link Technologies';
+
+            const [net] = await Promise.all([
+                getNetworkMeta(),
+                (async () => {
+                    try {
+                        const res = await fetch('https://ipinfo.io/json');
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.ip) ip = data.ip;
+                            if (data.loc) {
+                                const parts = data.loc.split(',');
+                                if (parts[0]) lat = Math.abs(parseFloat(parts[0])).toFixed(4);
+                                if (parts[1]) lon = Math.abs(parseFloat(parts[1])).toFixed(4);
+                            }
+                            if (data.org) routerVendor = data.org;
+                        }
+                    } catch (e) {}
+                })()
+            ]);
+
+            return [
+                `ip: ${ip}`,
+                `N: ${lat}`,
+                `W: ${lon}`,
+                `DMZ 10.15.251.10`,
+                `DNS 8.8.8.8`,
+                `ALT DNS: 1.1.1.1`,
+                `WAN: 100.10.40`,
+                `WAN TYPE: ${net.wanType}`,
+                `Gateway: ${net.gateway}`,
+                `Subnet Mask: ${net.subnet}`,
+                `udp open ports 80 25565 tcp open ports 443 25565`,
+                `Router Vendor: ${routerVendor}`,
+                `Device Vendor: ${getDevice()}`
+            ];
+        }
+
+        function render() {
+            try {
+                if (video.paused || video.ended) {
+                    if (video.ended && recorder && recorder.state === 'recording') {
+                        recorder.stop();
+                    }
+                    return;
+                }
+
+                if (video.duration) {
+                    const pct = Math.min(100, Math.floor((video.currentTime / video.duration) * 100));
+                    status.textContent = `Rendering (${pct}% Done)...`;
+                }
+
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const t = video.currentTime;
+                if (t >= 7.5) {
+                    const count = Math.min(lines.length, Math.floor((t - 7.5) / 0.511) + 1);
+                    const activeLines = lines.slice(0, count);
+
+                    const maxWidth = canvas.width * 0.95;
+                    const maxHeight = canvas.height * 0.90;
+                    const lineSpacing = 1.18;
+
+                    let size = Math.floor(canvas.height * 0.16);
+                    size = Math.min(size, maxHeight / (count * lineSpacing));
+
+                    ctx.font = `bold ${size}px "Segoe UI", Arial, sans-serif`;
+                    let widest = 0;
+                    for (const str of activeLines) {
+                        const w = ctx.measureText(str).width;
+                        if (w > widest) widest = w;
+                    }
+
+                    if (widest > maxWidth) {
+                        size *= maxWidth / widest;
+                    }
+
+                    size = Math.max(10, Math.floor(size));
+                    const lineHeight = size * lineSpacing;
+
+                    ctx.font = `bold ${size}px "Segoe UI", Arial, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+
+                    const x = canvas.width / 2;
+                    let y = (canvas.height / 2) - ((count * lineHeight) / 2) + (lineHeight / 2);
+
+                    for (const str of activeLines) {
+                        ctx.fillText(str, x, y);
+                        y += lineHeight;
+                    }
+                }
+
+                requestAnimationFrame(render);
+            } catch (e) {
+                status.textContent = 'erm';
+            }
+        }
+
+        async function start() {
+            if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream || !(window.AudioContext || window.webkitAudioContext)) {
+                status.textContent = 'keys';
+                return;
+            }
+
+            try {
+                lines = await loadInfo();
+                video.src = 'https://filho.wtf/Assets/lmao.mp4';
+
+                video.onloadedmetadata = () => {
+                    try {
+                        canvas.width = video.videoWidth || 640;
+                        canvas.height = video.videoHeight || 360;
+
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const source = audioCtx.createMediaElementSource(video);
+                        const dest = audioCtx.createMediaStreamDestination();
+                        source.connect(dest);
+                        source.connect(audioCtx.destination);
+
+                        const stream = new MediaStream([
+                            ...canvas.captureStream(30).getVideoTracks(),
+                            ...dest.stream.getAudioTracks()
+                        ]);
+
+                        const mimeTypes = [
+                            'video/mp4;codecs=avc1',
+                            'video/mp4',
+                            'video/webm;codecs=vp9',
+                            'video/webm'
+                        ];
+                        const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
+
+                        recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+
+                        recorder.onerror = () => {
+                            status.textContent = 'erm';
+                        };
+
+                        recorder.ondataavailable = e => {
+                            if (e.data.size) chunks.push(e.data);
+                        };
+
+                        recorder.onstop = () => {
+                            try {
+                                if (!chunks.length) {
+                                    status.textContent = 'erm';
+                                    return;
+                                }
+                                const elapsed = Math.round(performance.now() - startTime);
+                                const blob = new Blob(chunks, { type: recorder.mimeType });
+                                const a = document.createElement('a');
+                                a.href = URL.createObjectURL(blob);
+                                a.download = 'lol.mp4';
+                                a.click();
+                                status.textContent = `Sucessfully Rendered in ${elapsed}ms.`;
+                            } catch (e) {
+                                status.textContent = 'erm';
+                            }
+                        };
+
+                        recorder.start();
+                        startTime = performance.now();
+                        isRendering = true;
+                        status.textContent = 'Rendering (0% Done)...';
+
+                        const run = () => {
+                            audioCtx.resume();
+                            video.play().catch(() => { status.textContent = 'erm'; });
+                            startTime = performance.now();
+                            render();
+                        };
+
+                        video.play().then(render).catch(() => {
+                            window.addEventListener('click', run, { once: true });
+                        });
+                    } catch (e) {
+                        status.textContent = 'erm';
+                    }
+                };
+
+                video.onerror = () => {
+                    status.textContent = 'uh';
+                };
+            } catch (e) {
+                status.textContent = 'uh';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', start);
+    </script>
+</body>
+</html>
