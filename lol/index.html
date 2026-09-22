@@ -49,6 +49,7 @@
         let lines = [];
         let startTime = 0;
         let isRendering = false;
+        let audioCtx = null;
 
         window.addEventListener('error', () => {
             if (status.textContent !== 'keys' && status.textContent !== 'erm') {
@@ -218,8 +219,89 @@
             }
         }
 
+        function getAudioTracks() {
+            try {
+                const stream = (video.captureStream || video.mozCaptureStream)?.call(video);
+                if (stream && stream.getAudioTracks().length) {
+                    return stream.getAudioTracks();
+                }
+            } catch (e) {}
+
+            if (window.AudioContext || window.webkitAudioContext) {
+                try {
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    const source = audioCtx.createMediaElementSource(video);
+                    const dest = audioCtx.createMediaStreamDestination();
+                    source.connect(dest);
+                    source.connect(audioCtx.destination);
+                    return dest.stream.getAudioTracks();
+                } catch (e) {}
+            }
+            return [];
+        }
+
+        function startRender() {
+            try {
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 360;
+
+                const audioTracks = getAudioTracks();
+                const stream = new MediaStream([
+                    ...canvas.captureStream(30).getVideoTracks(),
+                    ...audioTracks
+                ]);
+
+                const mimeTypes = [
+                    'video/mp4;codecs=avc1',
+                    'video/mp4',
+                    'video/webm;codecs=vp9',
+                    'video/webm'
+                ];
+                const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
+
+                recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+
+                recorder.onerror = () => {
+                    status.textContent = 'erm';
+                };
+
+                recorder.ondataavailable = e => {
+                    if (e.data.size) chunks.push(e.data);
+                };
+
+                recorder.onstop = () => {
+                    try {
+                        if (!chunks.length) {
+                            status.textContent = 'erm';
+                            return;
+                        }
+                        const elapsed = Math.round(performance.now() - startTime);
+                        const blob = new Blob(chunks, { type: recorder.mimeType });
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'lol.mp4';
+                        a.click();
+                        status.textContent = `Sucessfully Rendered in ${elapsed}ms.`;
+                    } catch (e) {
+                        status.textContent = 'erm';
+                    }
+                };
+
+                recorder.start();
+                startTime = performance.now();
+                isRendering = true;
+                status.textContent = 'Rendering (0% Done)...';
+
+                render();
+            } catch (e) {
+                status.textContent = 'erm';
+            }
+        }
+
         async function start() {
-            if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream || !(window.AudioContext || window.webkitAudioContext)) {
+            if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
                 status.textContent = 'keys';
                 return;
             }
@@ -229,74 +311,23 @@
                 video.src = sources[srcIndex];
 
                 video.onloadedmetadata = () => {
-                    try {
-                        canvas.width = video.videoWidth || 640;
-                        canvas.height = video.videoHeight || 360;
-
-                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                        const source = audioCtx.createMediaElementSource(video);
-                        const dest = audioCtx.createMediaStreamDestination();
-                        source.connect(dest);
-                        source.connect(audioCtx.destination);
-
-                        const stream = new MediaStream([
-                            ...canvas.captureStream(30).getVideoTracks(),
-                            ...dest.stream.getAudioTracks()
-                        ]);
-
-                        const mimeTypes = [
-                            'video/mp4;codecs=avc1',
-                            'video/mp4',
-                            'video/webm;codecs=vp9',
-                            'video/webm'
-                        ];
-                        const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
-
-                        recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-
-                        recorder.onerror = () => {
-                            status.textContent = 'erm';
-                        };
-
-                        recorder.ondataavailable = e => {
-                            if (e.data.size) chunks.push(e.data);
-                        };
-
-                        recorder.onstop = () => {
-                            try {
-                                if (!chunks.length) {
-                                    status.textContent = 'erm';
-                                    return;
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            startRender();
+                        }).catch(() => {
+                            status.textContent = 'Click anywhere to begin render...';
+                            window.addEventListener('pointerdown', () => {
+                                if (audioCtx && audioCtx.state === 'suspended') {
+                                    audioCtx.resume();
                                 }
-                                const elapsed = Math.round(performance.now() - startTime);
-                                const blob = new Blob(chunks, { type: recorder.mimeType });
-                                const a = document.createElement('a');
-                                a.href = URL.createObjectURL(blob);
-                                a.download = 'lol.mp4';
-                                a.click();
-                                status.textContent = `Sucessfully Rendered in ${elapsed}ms.`;
-                            } catch (e) {
-                                status.textContent = 'erm';
-                            }
-                        };
-
-                        recorder.start();
-                        startTime = performance.now();
-                        isRendering = true;
-                        status.textContent = 'Rendering (0% Done)...';
-
-                        const run = () => {
-                            audioCtx.resume();
-                            video.play().catch(() => { status.textContent = 'erm'; });
-                            startTime = performance.now();
-                            render();
-                        };
-
-                        video.play().then(render).catch(() => {
-                            window.addEventListener('click', run, { once: true });
+                                video.play().then(() => {
+                                    startRender();
+                                }).catch(() => {
+                                    status.textContent = 'erm';
+                                });
+                            }, { once: true });
                         });
-                    } catch (e) {
-                        status.textContent = 'erm';
                     }
                 };
 
