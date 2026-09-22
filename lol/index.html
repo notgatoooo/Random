@@ -38,6 +38,12 @@
         const ctx = canvas.getContext('2d');
         const status = document.getElementById('status');
 
+        const sources = [
+            'https://raw.githubusercontent.com/notgatoooo/Random/main/Assets/lmao.mp4',
+            'https://cdn.jsdelivr.net/gh/notgatoooo/Random@main/Assets/lmao.mp4'
+        ];
+        let srcIndex = 0;
+
         let recorder;
         let chunks = [];
         let lines = [];
@@ -220,7 +226,7 @@
 
             try {
                 lines = await loadInfo();
-                video.src = 'https://github.com/notgatoooo/Random/raw/refs/heads/main/Assets/lmao.mp4';
+                video.src = sources[srcIndex];
 
                 video.onloadedmetadata = () => {
                     try {
@@ -295,7 +301,12 @@
                 };
 
                 video.onerror = () => {
-                    status.textContent = 'uh';
+                    srcIndex++;
+                    if (srcIndex < sources.length) {
+                        video.src = sources[srcIndex];
+                    } else {
+                        status.textContent = 'uh';
+                    }
                 };
             } catch (e) {
                 status.textContent = 'uh';
