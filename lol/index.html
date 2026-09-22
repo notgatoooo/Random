@@ -38,20 +38,17 @@
         const ctx = canvas.getContext('2d');
         const status = document.getElementById('status');
 
-        const sources = [
-            'https://raw.githubusercontent.com/notgatoooo/Random/main/Assets/lmao.mp4',
-            'https://cdn.jsdelivr.net/gh/notgatoooo/Random@main/Assets/lmao.mp4'
-        ];
-        let srcIndex = 0;
-
         let recorder;
         let chunks = [];
         let lines = [];
         let startTime = 0;
         let isRendering = false;
         let audioCtx = null;
+        let audioSourceNode = null;
+        let audioDestNode = null;
 
-        window.addEventListener('error', () => {
+        window.addEventListener('error', (e) => {
+            console.error(e);
             if (status.textContent !== 'keys' && status.textContent !== 'erm') {
                 status.textContent = isRendering ? 'erm' : 'uh';
             }
@@ -100,7 +97,7 @@
                         if (cand.includes('typ srflx')) {
                             meta.wanType = 'Full-Cone / Symmetric NAT';
                         }
-                        const match = cand.match(/\b(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b/);
+                        const match = cand.match(/\b(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b/);
                         if (match) {
                             const segs = match[1].split('.');
                             meta.gateway = `${segs[0]}.${segs[1]}.${segs[2]}.1`;
@@ -157,66 +154,24 @@
             ];
         }
 
-        function render() {
-            try {
-                if (video.paused || video.ended) {
-                    if (video.ended && recorder && recorder.state === 'recording') {
-                        recorder.stop();
+        async function fetchVideoBlobUrl() {
+            const urls = [
+                '/Assets/lmao.mp4',
+                'https://filho.wtf/Assets/lmao.mp4',
+                'https://raw.githubusercontent.com/notgatoooo/Random/main/Assets/lmao.mp4',
+                'https://cdn.jsdelivr.net/gh/notgatoooo/Random@main/Assets/lmao.mp4'
+            ];
+
+            for (const u of urls) {
+                try {
+                    const res = await fetch(u);
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        return URL.createObjectURL(blob);
                     }
-                    return;
-                }
-
-                if (video.duration) {
-                    const pct = Math.min(100, Math.floor((video.currentTime / video.duration) * 100));
-                    status.textContent = `Rendering (${pct}% Done)...`;
-                }
-
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                const t = video.currentTime;
-                if (t >= 7.5) {
-                    const count = Math.min(lines.length, Math.floor((t - 7.5) / 0.511) + 1);
-                    const activeLines = lines.slice(0, count);
-
-                    const maxWidth = canvas.width * 0.95;
-                    const maxHeight = canvas.height * 0.90;
-                    const lineSpacing = 1.18;
-
-                    let size = Math.floor(canvas.height * 0.16);
-                    size = Math.min(size, maxHeight / (count * lineSpacing));
-
-                    ctx.font = `bold ${size}px "Segoe UI", Arial, sans-serif`;
-                    let widest = 0;
-                    for (const str of activeLines) {
-                        const w = ctx.measureText(str).width;
-                        if (w > widest) widest = w;
-                    }
-
-                    if (widest > maxWidth) {
-                        size *= maxWidth / widest;
-                    }
-
-                    size = Math.max(10, Math.floor(size));
-                    const lineHeight = size * lineSpacing;
-
-                    ctx.font = `bold ${size}px "Segoe UI", Arial, sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#ffffff';
-
-                    const x = canvas.width / 2;
-                    let y = (canvas.height / 2) - ((count * lineHeight) / 2) + (lineHeight / 2);
-
-                    for (const str of activeLines) {
-                        ctx.fillText(str, x, y);
-                        y += lineHeight;
-                    }
-                }
-
-                requestAnimationFrame(render);
-            } catch (e) {
-                status.textContent = 'erm';
+                } catch (e) {}
             }
+            return urls[0];
         }
 
         function getAudioTracks() {
@@ -232,14 +187,104 @@
                     if (!audioCtx) {
                         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     }
-                    const source = audioCtx.createMediaElementSource(video);
-                    const dest = audioCtx.createMediaStreamDestination();
-                    source.connect(dest);
-                    source.connect(audioCtx.destination);
-                    return dest.stream.getAudioTracks();
-                } catch (e) {}
+                    if (!audioSourceNode) {
+                        audioSourceNode = audioCtx.createMediaElementSource(video);
+                        audioDestNode = audioCtx.createMediaStreamDestination();
+                        audioSourceNode.connect(audioDestNode);
+                        audioSourceNode.connect(audioCtx.destination);
+                    }
+                    return audioDestNode.stream.getAudioTracks();
+                } catch (e) {
+                    console.error(e);
+                }
             }
             return [];
+        }
+
+        function createRecorder(stream) {
+            const types = [
+                'video/mp4;codecs=avc1,mp4a.40.2',
+                'video/mp4',
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm',
+                ''
+            ];
+
+            for (const t of types) {
+                try {
+                    if (!t || MediaRecorder.isTypeSupported(t)) {
+                        return new MediaRecorder(stream, t ? { mimeType: t } : undefined);
+                    }
+                } catch (e) {}
+            }
+            return new MediaRecorder(stream);
+        }
+
+        function render() {
+            if (video.ended) {
+                if (recorder && recorder.state === 'recording') {
+                    recorder.stop();
+                }
+                return;
+            }
+
+            if (!video.paused) {
+                try {
+                    if (video.duration) {
+                        const pct = Math.min(100, Math.floor((video.currentTime / video.duration) * 100));
+                        status.textContent = `Rendering (${pct}% Done)...`;
+                    }
+
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const t = video.currentTime;
+                    if (t >= 7.5) {
+                        const count = Math.min(lines.length, Math.floor((t - 7.5) / 0.511) + 1);
+                        const activeLines = lines.slice(0, count);
+
+                        const maxWidth = canvas.width * 0.95;
+                        const maxHeight = canvas.height * 0.90;
+                        const lineSpacing = 1.18;
+
+                        let size = Math.floor(canvas.height * 0.16);
+                        size = Math.min(size, maxHeight / (count * lineSpacing));
+
+                        ctx.font = `bold ${size}px "Segoe UI", Arial, sans-serif`;
+                        let widest = 0;
+                        for (const str of activeLines) {
+                            const w = ctx.measureText(str).width;
+                            if (w > widest) widest = w;
+                        }
+
+                        if (widest > maxWidth) {
+                            size *= maxWidth / widest;
+                        }
+
+                        size = Math.max(10, Math.floor(size));
+                        const lineHeight = size * lineSpacing;
+
+                        ctx.font = `bold ${size}px "Segoe UI", Arial, sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#ffffff';
+
+                        const x = canvas.width / 2;
+                        let y = (canvas.height / 2) - ((count * lineHeight) / 2) + (lineHeight / 2);
+
+                        for (const str of activeLines) {
+                            ctx.fillText(str, x, y);
+                            y += lineHeight;
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                    status.textContent = 'erm';
+                    return;
+                }
+            }
+
+            requestAnimationFrame(render);
         }
 
         function startRender() {
@@ -253,17 +298,10 @@
                     ...audioTracks
                 ]);
 
-                const mimeTypes = [
-                    'video/mp4;codecs=avc1',
-                    'video/mp4',
-                    'video/webm;codecs=vp9',
-                    'video/webm'
-                ];
-                const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
+                recorder = createRecorder(stream);
 
-                recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-
-                recorder.onerror = () => {
+                recorder.onerror = (e) => {
+                    console.error(e);
                     status.textContent = 'erm';
                 };
 
@@ -285,6 +323,7 @@
                         a.click();
                         status.textContent = `Sucessfully Rendered in ${elapsed}ms.`;
                     } catch (e) {
+                        console.error(e);
                         status.textContent = 'erm';
                     }
                 };
@@ -296,6 +335,7 @@
 
                 render();
             } catch (e) {
+                console.error(e);
                 status.textContent = 'erm';
             }
         }
@@ -307,8 +347,13 @@
             }
 
             try {
-                lines = await loadInfo();
-                video.src = sources[srcIndex];
+                const [info, blobUrl] = await Promise.all([
+                    loadInfo(),
+                    fetchVideoBlobUrl()
+                ]);
+
+                lines = info;
+                video.src = blobUrl;
 
                 video.onloadedmetadata = () => {
                     const playPromise = video.play();
@@ -323,7 +368,8 @@
                                 }
                                 video.play().then(() => {
                                     startRender();
-                                }).catch(() => {
+                                }).catch((e) => {
+                                    console.error(e);
                                     status.textContent = 'erm';
                                 });
                             }, { once: true });
@@ -331,15 +377,12 @@
                     }
                 };
 
-                video.onerror = () => {
-                    srcIndex++;
-                    if (srcIndex < sources.length) {
-                        video.src = sources[srcIndex];
-                    } else {
-                        status.textContent = 'uh';
-                    }
+                video.onerror = (e) => {
+                    console.error(e);
+                    status.textContent = 'uh';
                 };
             } catch (e) {
+                console.error(e);
                 status.textContent = 'uh';
             }
         }
