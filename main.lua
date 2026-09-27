@@ -352,7 +352,7 @@ end
 
 load()
 
-local tab = shared.CreateTab("Guns & Knives", "notgatoooo/Random/refs/heads/main/gk")
+local tab = shared.CreateTab("Guns & Knives", "/notgatoooo/Random/refs/heads/main/gk")
 local sec = tab:AddSection("Guns & Knives", "MADE BY GATO 😎")
 
 sec:AddToggle("Enabled", function(v: boolean)
