@@ -108,3 +108,5 @@ print("Discord ID:", shared.discord_id)
 print("Executor:", shared.executor)
 print("HWID:", shared.hwid)
 print("Pass 19")
+
+shared.load_from_github_url("/notgatoooo/Random/refs/heads/main/Addon_ext.lua")
