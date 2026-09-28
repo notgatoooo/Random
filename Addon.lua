@@ -63,7 +63,7 @@ my_own_section:AddColorpicker("colorpicker", Color3.fromRGB(255, 255, 255), func
     print(color3rgb)
 end)
 
-print("11")
+print("Pass 11")
 --> Dropdown (<string> feature_name, <array> default_list, <closure> callback)
   -- Methods:
     -- :Select(<string> text): <void>
