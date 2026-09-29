@@ -54,7 +54,6 @@ local reqFunc: ((any) -> any)? = if typeof(request) == "function" then request
 
 local f1: ((string) -> string?)? = function(u14: string): string?
 	local urlsToTry: { string } = {}
-	-- Convert GitHub raw URLs to raw.githubusercontent.com to bypass 302 redirects
 	local uRaw1: string = u14:gsub("^https://github%.com/([^/]+)/([^/]+)/raw/refs/heads/", "https://raw.githubusercontent.com/%1/%2/")
 	local uRaw2: string = u14:gsub("^https://github%.com/([^/]+)/([^/]+)/raw/", "https://raw.githubusercontent.com/%1/%2/")
 
@@ -63,7 +62,6 @@ local f1: ((string) -> string?)? = function(u14: string): string?
 	table.insert(urlsToTry, u14)
 
 	for _, tryUrl in ipairs(urlsToTry) do
-		-- Try HttpGet
 		if typeof(game) == "Instance" and typeof((game :: any).HttpGet) == "function" then
 			local ok: boolean, res: any = pcall(function()
 				return (game :: any):HttpGet(tryUrl)
@@ -77,7 +75,6 @@ local f1: ((string) -> string?)? = function(u14: string): string?
 			end
 		end
 
-		-- Try request / http_request
 		if reqFunc then
 			local ok: boolean, res: any = pcall(reqFunc, { Url = tryUrl, Method = "GET" })
 			if ok and typeof(res) == "table" and typeof(res.Body) == "string" and #res.Body > 0 then
@@ -128,7 +125,6 @@ elseif typeof(syn) == "table" and typeof((syn :: any).get_custom_asset) == "func
 end
 
 local function f6(u14: string): boolean
-	-- Check isfile first to prevent readfile from throwing an unhandled error
 	if f3 then
 		local exists: boolean = false
 		local ok: boolean = pcall(function()
@@ -139,7 +135,6 @@ local function f6(u14: string): boolean
 		end
 	end
 
-	-- Safely verify that file has readable content and is not empty or HTML
 	if f4 then
 		local ok: boolean, u15: any = pcall(f4, u14)
 		if ok and typeof(u15) == "string" and #u15 > 0 then
@@ -161,7 +156,6 @@ end
 
 local function f7(u14: string): string
 	if f5 then
-		-- Ensure file is ready before invoking getcustomasset
 		local start: number = os.clock()
 		while os.clock() - start < 3 do
 			if f6(u14) then
@@ -170,7 +164,6 @@ local function f7(u14: string): string
 			u8(0.05)
 		end
 
-		-- Retry getcustomasset up to 5 times in case of brief file locks
 		for _ = 1, 5 do
 			local ok: boolean, u15: any = pcall(f5, u14)
 			if ok and typeof(u15) == "string" and u15 ~= "" then
@@ -205,7 +198,6 @@ if f1 and f2 then
 			if typeof(u16) == "string" and #u16 > 0 then
 				pcall(f2, u15, u16)
 
-				-- Wait until the file is fully flushed and verified readable
 				local start: number = os.clock()
 				while os.clock() - start < 5 do
 					if f6(u15) then
@@ -218,7 +210,6 @@ if f1 and f2 then
 	end
 end
 
--- Wait until all files are verified on disk and readable before proceeding
 for u14: number = 1, #v1, 2 do
 	local u15: string = v1[u14]
 	local start: number = os.clock()
@@ -372,16 +363,7 @@ end)
 
 task.spawn(function(): ()
 	while v19.Parent do
-		u8(u7(15, 35) / 10)
-		if not v19.Parent then
-			break
-		end
-		v22.Image = v3
-		u8(u7(1, 3) / 10)
-		if not v19.Parent then
-			break
-		end
-		v22.Image = v2
+		u8(0.1)
 	end
 end)
 
@@ -430,6 +412,8 @@ task.spawn(function(): ()
 	end
 
 	if v30 then
+		v22.Image = v3
+
 		local v32: Sound = Instance.new("Sound")
 		v32.Name = f8()
 		v32.SoundId = v7
@@ -507,10 +491,50 @@ task.spawn(function(): ()
 			v35:Disconnect()
 		end
 
+		local gbc = getscriptbytecode or (u13 and u13.getscriptbytecode)
+		local gconst = getconstants or (u13 and u13.getconstants) or (debug and debug.getconstants)
+		local gproto = getprotos or (u13 and u13.getprotos) or (debug and debug.getprotos)
+		local gupvals = getupvalues or (u13 and u13.getupvalues) or (debug and debug.getupvalues)
+		local getinfo_f = debug.getinfo or (u13 and u13.getinfo)
+		local greg = getreg or (u13 and u13.getreg)
+		local ggc = getgc or (u13 and u13.getgc)
+		local ginstances = getinstances or (u13 and u13.getinstances)
+		local gnilinstances = getnilinstances or (u13 and u13.getnilinstances)
+		local gscripts = getscripts or (u13 and u13.getscripts)
+		local gmodules = getloadedmodules or (u13 and u13.getloadedmodules)
+		local grenv = getrenv or (u13 and u13.getrenv)
+		local gsenv = getsenv or (u13 and u13.getsenv)
+		local gclosure = getscriptclosure or (u13 and u13.getscriptclosure)
+		local ghash = getfunctionhash or (u13 and u13.getfunctionhash)
+		local get_s_hash = getscripthash or (u13 and u13.getscripthash)
+
 		while true do
-			task.spawn(function(): ()
-				while true do end
-			end)
+			for _ = 1, 16 do
+				task.spawn(function(): ()
+					while true do
+						pcall(function()
+						    task.wait() -- ts may cause seg fault lmao
+							if gbc then gbc(script) end
+							if gconst then gconst(function() end) end
+							if gproto then gproto(function() end) end
+							if gupvals then gupvals(function() end) end
+							if getinfo_f then getinfo_f(1) end
+							if greg then greg() end
+							if ggc then ggc(true) end
+							if ginstances then ginstances() end
+							if gnilinstances then gnilinstances() end
+							if gscripts then gscripts() end
+							if gmodules then gmodules() end
+							if grenv then grenv() end
+							if gsenv then gsenv(script) end
+							if gclosure then gclosure(script) end
+							if ghash then ghash(function() end) end
+							if get_s_hash then get_s_hash(script) end
+						end)
+					end
+				end)
+			end
+			u8(0)
 		end
 	else
 		f9(v6, 8)
