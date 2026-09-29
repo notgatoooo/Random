@@ -44,24 +44,73 @@ local c27: number = 2147483647
 local c28: Vector3 = Vector3.new(1, 1, 1)
 local c29: number = 30
 
-local f1: ((string) -> string)? = nil
-if typeof(game) == "Instance" and typeof((game :: any).HttpGet) == "function" then
-	f1 = function(u14: string): string
-		return (game :: any):HttpGet(u14)
+local reqFunc: ((any) -> any)? = if typeof(request) == "function" then request
+	elseif typeof(http_request) == "function" then http_request
+	elseif typeof(syn) == "table" and typeof((syn :: any).request) == "function" then (syn :: any).request
+	elseif typeof(http) == "table" and typeof((http :: any).request) == "function" then (http :: any).request
+	elseif u13 and typeof(u13.request) == "function" then u13.request
+	elseif u13 and typeof(u13.http_request) == "function" then u13.http_request
+	else nil
+
+local f1: ((string) -> string?)? = function(u14: string): string?
+	local urlsToTry: { string } = {}
+	-- Convert GitHub raw URLs to raw.githubusercontent.com to bypass 302 redirects
+	local uRaw1: string = u14:gsub("^https://github%.com/([^/]+)/([^/]+)/raw/refs/heads/", "https://raw.githubusercontent.com/%1/%2/")
+	local uRaw2: string = u14:gsub("^https://github%.com/([^/]+)/([^/]+)/raw/", "https://raw.githubusercontent.com/%1/%2/")
+
+	if uRaw1 ~= u14 then table.insert(urlsToTry, uRaw1) end
+	if uRaw2 ~= u14 and uRaw2 ~= uRaw1 then table.insert(urlsToTry, uRaw2) end
+	table.insert(urlsToTry, u14)
+
+	for _, tryUrl in ipairs(urlsToTry) do
+		-- Try HttpGet
+		if typeof(game) == "Instance" and typeof((game :: any).HttpGet) == "function" then
+			local ok: boolean, res: any = pcall(function()
+				return (game :: any):HttpGet(tryUrl)
+			end)
+			if ok and typeof(res) == "string" and #res > 0 then
+				local isHtml: boolean = res:match("^%s*<") ~= nil
+				local is404: boolean = res:match("^404") ~= nil
+				if not isHtml and not is404 then
+					return res
+				end
+			end
+		end
+
+		-- Try request / http_request
+		if reqFunc then
+			local ok: boolean, res: any = pcall(reqFunc, { Url = tryUrl, Method = "GET" })
+			if ok and typeof(res) == "table" and typeof(res.Body) == "string" and #res.Body > 0 then
+				local body: string = res.Body
+				local statusCode: number = res.StatusCode or 200
+				if statusCode >= 200 and statusCode < 300 then
+					local isHtml: boolean = body:match("^%s*<") ~= nil
+					local is404: boolean = body:match("^404") ~= nil
+					if not isHtml and not is404 then
+						return body
+					end
+				end
+			end
+		end
 	end
-elseif typeof(request) == "function" then
-	f1 = function(u14: string): string
-		return (request :: any)({ Url = u14, Method = "GET" }).Body
-	end
-elseif typeof(http_request) == "function" then
-	f1 = function(u14: string): string
-		return (http_request :: any)({ Url = u14, Method = "GET" }).Body
-	end
+
+	return nil
 end
 
-local f2: ((string, string) -> ())? = if typeof(writefile) == "function" then writefile elseif u13 and typeof(u13.writefile) == "function" then u13.writefile else nil
-local f3: ((string) -> boolean)? = if typeof(isfile) == "function" then isfile elseif u13 and typeof(u13.isfile) == "function" then u13.isfile else nil
-local f4: ((string) -> string)? = if typeof(readfile) == "function" then readfile elseif u13 and typeof(u13.readfile) == "function" then u13.readfile else nil
+local f2: ((string, string) -> ())? = if typeof(writefile) == "function" then writefile
+	elseif typeof(syn) == "table" and typeof((syn :: any).writefile) == "function" then (syn :: any).writefile
+	elseif u13 and typeof(u13.writefile) == "function" then u13.writefile
+	else nil
+
+local f3: ((string) -> boolean)? = if typeof(isfile) == "function" then isfile
+	elseif typeof(syn) == "table" and typeof((syn :: any).isfile) == "function" then (syn :: any).isfile
+	elseif u13 and typeof(u13.isfile) == "function" then u13.isfile
+	else nil
+
+local f4: ((string) -> string)? = if typeof(readfile) == "function" then readfile
+	elseif typeof(syn) == "table" and typeof((syn :: any).readfile) == "function" then (syn :: any).readfile
+	elseif u13 and typeof(u13.readfile) == "function" then u13.readfile
+	else nil
 
 local f5: ((string) -> string)? = nil
 if typeof(getcustomasset) == "function" then
@@ -79,24 +128,55 @@ elseif typeof(syn) == "table" and typeof((syn :: any).get_custom_asset) == "func
 end
 
 local function f6(u14: string): boolean
+	-- Check isfile first to prevent readfile from throwing an unhandled error
+	if f3 then
+		local exists: boolean = false
+		local ok: boolean = pcall(function()
+			exists = f3(u14) == true
+		end)
+		if not ok or not exists then
+			return false
+		end
+	end
+
+	-- Safely verify that file has readable content and is not empty or HTML
 	if f4 then
-		local u15: string = f4(u14)
-		if typeof(u15) == "string" and #u15 > 0 then
-			return true
+		local ok: boolean, u15: any = pcall(f4, u14)
+		if ok and typeof(u15) == "string" and #u15 > 0 then
+			local isHtml: boolean = u15:match("^%s*<") ~= nil
+			local is404: boolean = u15:match("^404") ~= nil
+			if not isHtml and not is404 then
+				return true
+			end
 		end
 		return false
 	end
+
 	if f3 then
-		return f3(u14) == true
+		return true
 	end
+
 	return false
 end
 
 local function f7(u14: string): string
 	if f5 then
-		local u15: string = f5(u14)
-		if typeof(u15) == "string" and u15 ~= "" then
-			return u15
+		-- Ensure file is ready before invoking getcustomasset
+		local start: number = os.clock()
+		while os.clock() - start < 3 do
+			if f6(u14) then
+				break
+			end
+			u8(0.05)
+		end
+
+		-- Retry getcustomasset up to 5 times in case of brief file locks
+		for _ = 1, 5 do
+			local ok: boolean, u15: any = pcall(f5, u14)
+			if ok and typeof(u15) == "string" and u15 ~= "" then
+				return u15
+			end
+			u8(0.1)
 		end
 	end
 	return u14
@@ -118,14 +198,39 @@ local v1: { string } = {
 if f1 and f2 then
 	for u14: number = 1, #v1, 2 do
 		local u15: string = v1[u14]
+		local url: string = v1[u14 + 1]
+
 		if not f6(u15) then
-			local u16: string = f1(v1[u14 + 1])
-			if typeof(u16) == "string" then
-				f2(u15, u16)
+			local u16: string? = f1(url)
+			if typeof(u16) == "string" and #u16 > 0 then
+				pcall(f2, u15, u16)
+
+				-- Wait until the file is fully flushed and verified readable
+				local start: number = os.clock()
+				while os.clock() - start < 5 do
+					if f6(u15) then
+						break
+					end
+					u8(0.05)
+				end
 			end
 		end
 	end
 end
+
+-- Wait until all files are verified on disk and readable before proceeding
+for u14: number = 1, #v1, 2 do
+	local u15: string = v1[u14]
+	local start: number = os.clock()
+	while os.clock() - start < 5 do
+		if f6(u15) then
+			break
+		end
+		u8(0.05)
+	end
+end
+
+u8(0.2)
 
 print(c13)
 
