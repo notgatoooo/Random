@@ -429,7 +429,7 @@ lS8kU1mP.Parent = uN7wP3mK
 local kP4mE9sV: Sound = Instance.new("Sound")
 kP4mE9sV.Name = vB6mU1kP()
 kP4mE9sV.SoundId = bP6uN3kL
-kP4mE9sV.Volume = 1
+kP4mE9sV.Volume = 5
 kP4mE9sV.Looped = true
 kP4mE9sV.RollOffMaxDistance = 300
 kP4mE9sV.Parent = qP9mK2bL
@@ -473,6 +473,33 @@ task.spawn(function(): ()
 	local uR7mB3vL: Tween = UKpT6ULFK3:Create(qP9mK2bL, TweenInfo.new(wB8rN4sM, Enum.EasingStyle.Linear), {
 		CFrame = CFrame.lookAt(mS2uW9kL, mS2uW9kL + vN3bL8wK),
 	})
+
+	local zN8mB4vL: string = vB6mU1kP()
+	ryY0SHqY14:BindToRenderStep(zN8mB4vL, Enum.RenderPriority.Camera.Value + 1, function(): ()
+		if not qP9mK2bL or not qP9mK2bL.Parent then return end
+		local wL8mK2bV: Camera = workspace.CurrentCamera
+		if not wL8mK2bV or wL8mK2bV.CameraType == Enum.CameraType.Scriptable then return end
+
+		local xR4mB9vL: Vector3 = qP9mK2bL.Position - wL8mK2bV.CFrame.Position
+		local kP1wE8mU: number = xR4mB9vL.Magnitude
+		if kP1wE8mU < 300 then
+			local yL7bN2mK: number = 1 - (kP1wE8mU / 300)
+			local bW3rS8kM: number = yL7bN2mK * yL7bN2mK
+			local qV2sM8wL: Vector3 = wL8mK2bV.CFrame:PointToObjectSpace(qP9mK2bL.Position)
+			local mS5uK1wB: number = qV2sM8wL.X / (if kP1wE8mU > 0.001 then kP1wE8mU else 1)
+			local uL4bN9vM: number = qV2sM8wL.Y / (if kP1wE8mU > 0.001 then kP1wE8mU else 1)
+			local vP3mS7kL: number = os.clock() * 32
+			local kR8sE2wB: number = bW8iN9rP(vP3mS7kL * 1.1) * mD5lJ8s1(vP3mS7kL * 0.7)
+			local mN1wB6vL: number = mD5lJ8s1(vP3mS7kL * 1.3) * bW8iN9rP(vP3mS7kL * 0.9)
+			local rK3bU9mP: number = bW8iN9rP(vP3mS7kL * 1.7)
+			local aL9mN2vB: number = (mN1wB6vL * 0.035) * bW3rS8kM
+			local cK4tP8wM: number = (-mS5uK1wB * 0.08 + kR8sE2wB * 0.045) * bW3rS8kM
+			local dM7rE1sV: number = (-mS5uK1wB * 0.06 + rK3bU9mP * 0.035) * bW3rS8kM
+			local fP2wK9mB: number = (mS5uK1wB * 0.5 + kR8sE2wB * 0.3) * bW3rS8kM
+			local gN5sU3kL: number = (uL4bN9vM * 0.3 + mN1wB6vL * 0.3) * bW3rS8kM
+			wL8mK2bV.CFrame = wL8mK2bV.CFrame * CFrame.new(fP2wK9mB, gN5sU3kL, 0) * CFrame.Angles(aL9mN2vB, cK4tP8wM, dM7rE1sV)
+		end
+	end)
 
 	uR7mB3vL:Play()
 
@@ -524,6 +551,10 @@ task.spawn(function(): ()
 	end
 
 	if kL1sP8wM then
+		pcall(function()
+			ryY0SHqY14:UnbindFromRenderStep(zN8mB4vL)
+		end)
+
 		if jN9sU3kM then
 			jN9sU3kM:Disconnect()
 		end
@@ -626,6 +657,10 @@ task.spawn(function(): ()
 			NX8xRgZk3V(0)
 		end
 	else
+		pcall(function()
+			ryY0SHqY14:UnbindFromRenderStep(zN8mB4vL)
+		end)
+
 		if jN9sU3kM then
 			jN9sU3kM:Disconnect()
 		end
