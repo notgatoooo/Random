@@ -1,4 +1,3 @@
-```luau
 --!native
 --!optimize 2
 
