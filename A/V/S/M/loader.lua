@@ -1,5 +1,15 @@
--- HELLO SKID!
+local getgenv_fn = getgenv
+local env = (getgenv_fn and getgenv_fn()) or {}
+local prev = env.AutoVote
+if prev then
+	prev.alive = false
+end
 
+local state = { alive = true, enabled = false }
+env.AutoVote = state
+
+local game_ref = game
+local workspace_ref = workspace
 local Vector3_new = Vector3.new
 local Vector3_zero = Vector3.zero
 local CFrame_new = CFrame.new
@@ -12,9 +22,10 @@ local str_match = string.match
 local table_create = table.create
 local task_wait = task.wait
 local task_spawn = task.spawn
+local pcall_fn = pcall
 
-local player = game:GetService("Players").LocalPlayer
-local pads = workspace:WaitForChild("Lobby"):WaitForChild("VotePads")
+local Players = game_ref:GetService("Players")
+local player = Players.LocalPlayer
 
 local ORDER = {
 	"House 2",
@@ -59,53 +70,79 @@ local STR_STATUS_OFF = "Off"
 local STR_WAIT_VOTE = "Waiting for vote"
 local STR_NO_PADS = "No vote pads found"
 local STR_VOTING_PREFIX = "Voting: "
+local STR_LOBBY = "Lobby"
+local STR_VOTEPADS = "VotePads"
+local PAD_NAMES = { "VotePad1", "VotePad2", "VotePad3" }
 local STR_PAD = "Pad"
 local STR_VGUI = "VoteInfoGui"
 local STR_CONTAINER = "Container"
 local STR_MAPNAME = "MapName"
 local STR_HRP = "HumanoidRootPart"
 local STR_HUM = "Humanoid"
-local PAD_NAMES = { "VotePad1", "VotePad2", "VotePad3" }
 
-local shared = odh_shared_plugins
-local tab = shared.CreateTab("A.V.S.M.", "/notgatoooo/Random/refs/heads/main/Assets/map-svgrepo-com.png")
-local section = tab:AddSection("A.V.S.M.", "Made by Gato 😎")
-local statusLabel = section:AddLabel(STR_STATUS_OFF, true)
+local shared = odh_shared_plugins or env.odh_shared_plugins
+local tab = shared.CreateTab("Auto Vote", "/axioriasolver/testplugin/refs/heads/main/icon")
+local section = tab:AddSection("Auto Vote", "SMALLEST MAP")
+
+local statusLabel = nil
+local function initLabel()
+	statusLabel = section:AddLabel(STR_STATUS_OFF, true)
+end
+pcall_fn(initLabel)
 
 local lastStatusText = STR_STATUS_OFF
+
+local function applyStatusLabel()
+	local lbl = statusLabel
+	if lbl then
+		lbl:SetValue(lastStatusText)
+	end
+end
 
 local function setStatus(txt)
 	local prevTxt = lastStatusText
 	if prevTxt ~= txt then
 		lastStatusText = txt
-		local lbl = statusLabel
-		if lbl then
-			lbl:SetValue(txt)
-		end
+		local pc = pcall_fn
+		local app = applyStatusLabel
+		pc(app)
 	end
 end
 
 local function onToggle(enabled)
 	local s = state
-	s.enabled = enabled
-	if not enabled then
+	local active = enabled and true or false
+	s.enabled = active
+	if not active then
 		local setSt = setStatus
 		local sOff = STR_STATUS_OFF
 		setSt(sOff)
 	end
 end
 
-section:AddToggle("Auto Vote Smallest Map", onToggle)
+section:AddToggle("Auto Vote: smallest map", onToggle)
 
+local pads = nil
 local padPool = table_create(3)
 for i = 1, 3 do
-	padPool[i] = { trigger = nil, gui = nil, map = "" }
+	padPool[i] = { pad = nil, trigger = nil, gui = nil, map = "" }
 end
 
 local function getPads()
-	local pFolder = pads
-	local pNames = PAD_NAMES
 	local pool = padPool
+	local pFolder = pads
+	if not pFolder or not pFolder.Parent then
+		local ws = workspace_ref
+		local sLobby = STR_LOBBY
+		local sVp = STR_VOTEPADS
+		local lobby = ws:FindFirstChild(sLobby)
+		pFolder = lobby and lobby:FindFirstChild(sVp)
+		pads = pFolder
+		if not pFolder then
+			return pool, 0
+		end
+	end
+	local pNames = PAD_NAMES
 	local sPad = STR_PAD
 	local sVgui = STR_VGUI
 	local sCont = STR_CONTAINER
@@ -122,6 +159,7 @@ local function getPads()
 				if nameObj then
 					count = count + 1
 					local entry = pool[count]
+					entry.pad = pad
 					entry.trigger = trigger
 					entry.gui = vgui
 					entry.map = nameObj.Text
@@ -201,6 +239,7 @@ end
 
 local function workerThread()
 	local s = state
+	local plrs = Players
 	local plr = player
 	local wait_fn = task_wait
 	local vOpen = votingOpen
@@ -251,11 +290,14 @@ local function workerThread()
 				flowState = 0
 			end
 		elseif flowState == 2 then
-			if not bestGui.Enabled then
+			if not bestGui or not bestGui.Parent or not bestGui.Enabled then
 				flowState = 0
 			else
 				setSt(bestStatusText)
-				local char = plr.Character
+				if not plr then
+					plr = plrs.LocalPlayer
+				end
+				local char = plr and plr.Character
 				if char and char ~= lastChar then
 					local hrp = char:FindFirstChild(sHrp)
 					local hum = char:FindFirstChildOfClass(sHum)
@@ -278,7 +320,7 @@ local function workerThread()
 			end
 		elseif flowState == 3 then
 			wait_fn(0.25)
-			if not (s.alive and s.enabled and bestGui.Enabled) then
+			if not (s.alive and s.enabled and bestGui and bestGui.Parent and bestGui.Enabled) then
 				flowState = 0
 			else
 				if activeChar.Parent and activeHrp.Parent and activeHum.Health > 0 and inPad(bestTrigger, activeHrp.Position) then
