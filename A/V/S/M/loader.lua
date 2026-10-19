@@ -1,13 +1,3 @@
-local getgenv_fn = getgenv
-local env = (getgenv_fn and getgenv_fn()) or {}
-local prev = env.AutoVote
-if prev then
-	prev.alive = false
-end
-
-local state = { alive = true, enabled = false }
-env.AutoVote = state
-
 local game_ref = game
 local workspace_ref = workspace
 local Vector3_new = Vector3.new
@@ -81,7 +71,7 @@ local STR_HRP = "HumanoidRootPart"
 local STR_HUM = "Humanoid"
 
 local shared = odh_shared_plugins or env.odh_shared_plugins
-local tab = shared.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/A/V/S/M/updater.lua")
+local tab = shared.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/Assets/map-svgrepo-com")
 local section = tab:AddSection("Auto Vote", "Made by Gato 😎")
 
 local statusLabel = nil
