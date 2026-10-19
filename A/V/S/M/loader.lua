@@ -81,8 +81,8 @@ local STR_HRP = "HumanoidRootPart"
 local STR_HUM = "Humanoid"
 
 local shared = odh_shared_plugins or env.odh_shared_plugins
-local tab = shared.CreateTab("Auto Vote", "/axioriasolver/testplugin/refs/heads/main/icon")
-local section = tab:AddSection("Auto Vote", "SMALLEST MAP")
+local tab = shared.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/A/V/S/M/updater.lua")
+local section = tab:AddSection("Auto Vote", "Made by Gato 😎")
 
 local statusLabel = nil
 local function initLabel()
@@ -120,7 +120,7 @@ local function onToggle(enabled)
 	end
 end
 
-section:AddToggle("Auto Vote: smallest map", onToggle)
+section:AddToggle("Auto Vote: Smallest Map", onToggle)
 
 local pads = nil
 local padPool = table_create(3)
