@@ -14,6 +14,7 @@ local str_lower = string.lower
 local str_find = string.find
 local str_sub = string.sub
 local str_match = string.match
+local str_gsub = string.gsub
 local table_create = table.create
 local task_wait = task.wait
 local task_spawn = task.spawn
@@ -40,19 +41,22 @@ local ORDER = {
 	"Mil Base",
 }
 local orderLen = #ORDER
-local fallbackRank = orderLen + 1
-local RANK = {}
+local fallbackRank = (orderLen * 2) + 1
+local RANK_SMALL = {}
+local RANK_BIG = {}
 local BASE_KEYS = table_create(orderLen)
 local SHORT_KEYS = table_create(orderLen)
 
 for i = 1, orderLen do
-	local full = str_lower(ORDER[i])
+	local full = str_gsub(str_lower(ORDER[i]), "-", " ")
 	local parenPos = str_find(full, " (", 1, true)
 	local base = parenPos and str_sub(full, 1, parenPos - 1) or full
 	local stripped = str_match(base, "^(.-)%s+%d+$") or base
-	RANK[full] = i
-	if not RANK[base] then
-		RANK[base] = i
+	RANK_SMALL[full] = i
+	RANK_BIG[full] = orderLen + i
+	if not RANK_SMALL[base] then
+		RANK_SMALL[base] = i + 0.05
+		RANK_BIG[base] = orderLen + i - 0.05
 	end
 	BASE_KEYS[i] = base
 	SHORT_KEYS[i] = stripped
@@ -285,41 +289,85 @@ local function votingOpen()
 	return false
 end
 
-local function resolveRank(rawMap)
+local function resolveRanks(rawMap)
 	local fb = fallbackRank
 	if rawMap == "" then
-		return fb
+		return fb, 0
+	end
+	local rnkS = RANK_SMALL
+	local rnkB = RANK_BIG
+	local cachedS = rnkS[rawMap]
+	if cachedS then
+		return cachedS, rnkB[rawMap]
 	end
 	local lower = str_lower
-	local rnk = RANK
-	local low = lower(rawMap)
-	local r = rnk[low]
-	if r then
-		return r
-	end
+	local gsub = str_gsub
+	local sMatch = str_match
 	local sFind = str_find
+	local sSub = str_sub
+	local low = gsub(lower(rawMap), "-", " ")
+	low = sMatch(low, "^%s*(.-)%s*$") or low
+	local exactS = rnkS[low]
+	if exactS then
+		local exactB = rnkB[low]
+		rnkS[rawMap] = exactS
+		rnkB[rawMap] = exactB
+		return exactS, exactB
+	end
+	local parenPos = sFind(low, " (", 1, true)
+	local clean = parenPos and sSub(low, 1, parenPos - 1) or low
+	clean = sMatch(clean, "^%s*(.-)%s*$") or clean
 	local bKeys = BASE_KEYS
 	local oLen = orderLen
 	for i = 1, oLen do
-		if sFind(low, bKeys[i], 1, true) then
-			rnk[low] = i
-			return i
+		if clean == bKeys[i] then
+			local sScore = i + 0.1
+			local bScore = oLen + i - 0.1
+			rnkS[rawMap] = sScore
+			rnkB[rawMap] = bScore
+			return sScore, bScore
+		end
+	end
+	for i = 1, oLen do
+		local bk = bKeys[i]
+		if sFind(clean, bk, 1, true) == 1 then
+			local nxt = sSub(clean, #bk + 1, #bk + 1)
+			if nxt == "" or nxt == " " then
+				local sScore = i + 0.2
+				local bScore = oLen + i - 0.2
+				rnkS[rawMap] = sScore
+				rnkB[rawMap] = bScore
+				return sScore, bScore
+			end
 		end
 	end
 	local sKeys = SHORT_KEYS
 	for i = 1, oLen do
-		if sFind(low, sKeys[i], 1, true) then
-			rnk[low] = i
-			return i
+		if clean == sKeys[i] then
+			local sScore = i + 0.3
+			local bScore = oLen + i - 0.3
+			rnkS[rawMap] = sScore
+			rnkB[rawMap] = bScore
+			return sScore, bScore
 		end
 	end
-	rnk[low] = fb
-	return fb
+	for i = 1, oLen do
+		if sFind(clean, bKeys[i], 1, true) then
+			local sScore = oLen + i
+			local bScore = i
+			rnkS[rawMap] = sScore
+			rnkB[rawMap] = bScore
+			return sScore, bScore
+		end
+	end
+	rnkS[rawMap] = fb
+	rnkB[rawMap] = 0
+	return fb, 0
 end
 
 local function pickSmallest()
 	local getP = getPads
-	local getR = resolveRank
+	local getR = resolveRanks
 	local best = nil
 	local bestRank = math_huge
 	local list, count = getP()
@@ -336,20 +384,16 @@ end
 
 local function pickBiggest()
 	local getP = getPads
-	local getR = resolveRank
-	local fb = fallbackRank
+	local getR = resolveRanks
 	local best = nil
 	local bestRank = -1
 	local list, count = getP()
 	for i = 1, count do
 		local p = list[i]
-		local r = getR(p.map)
-		if r == fb then
-			r = 0
-		end
-		if r > bestRank then
+		local _, rBig = getR(p.map)
+		if rBig > bestRank then
 			best = p
-			bestRank = r
+			bestRank = rBig
 		end
 	end
 	return best
