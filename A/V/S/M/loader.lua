@@ -23,24 +23,21 @@ local Players = game_ref:GetService("Players")
 local player = Players.LocalPlayer
 
 local ORDER = {
-	"House 2",
-	"Hospital 3",
-	"Haunted House (Retro)",
-	"Barn (Infection)",
-	"Mineshaft",
-	"Office 3",
-	"Workplace",
-	"Bank 2",
 	"Manor",
-	"Police Station",
-	"Spaceship",
+	"House 2",
+	"Office 3",
+	"Hospital 3",
+	"Bank 2",
 	"Vampire's Castle",
-	"Hotel 2",
-	"Research Facility",
 	"Mansion 2",
+	"WorkPlace",
+	"Hotel 2",
+	"Farm House",
+	"Police Station",
 	"Factory",
-	"Mil-Base",
 	"Bio Lab",
+	"Research Facility",
+	"Mil Base",
 }
 local orderLen = #ORDER
 local fallbackRank = orderLen + 1
