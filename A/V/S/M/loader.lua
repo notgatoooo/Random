@@ -10,6 +10,8 @@ local math_huge = math.huge
 local math_random = math.random
 local math_floor = math.floor
 local tonumber_fn = tonumber
+local type_fn = type
+local os_clock = os.clock
 local str_lower = string.lower
 local str_find = string.find
 local str_sub = string.sub
@@ -19,6 +21,7 @@ local table_create = table.create
 local task_wait = task.wait
 local task_spawn = task.spawn
 local pcall_fn = pcall
+local HUM_DEAD = Enum.HumanoidStateType.Dead
 
 local Players = game_ref:GetService("Players")
 local player = Players.LocalPlayer
@@ -75,6 +78,33 @@ local STR_CONTAINER = "Container"
 local STR_MAPNAME = "MapName"
 local STR_HRP = "HumanoidRootPart"
 local STR_HUM = "Humanoid"
+local STR_BASEPART = "BasePart"
+local STR_FUNCTION = "function"
+local STR_TABLE = "table"
+local STR_USERDATA = "userdata"
+local LABEL_METHODS = { "SetValue", "SetText", "Set" }
+local TOGGLE_METHODS = { "SetValue", "Set", "SetState" }
+local SPAWN_SETTLE = 1
+
+local function indexOf(obj, key)
+	return obj[key]
+end
+
+local function callMethod(obj, names, arg)
+	local t = type_fn(obj)
+	if t ~= STR_TABLE and t ~= STR_USERDATA then
+		return false
+	end
+	for i = 1, #names do
+		local ok, fn = pcall_fn(indexOf, obj, names[i])
+		if ok and type_fn(fn) == STR_FUNCTION then
+			if pcall_fn(fn, obj, arg) then
+				return true
+			end
+		end
+	end
+	return false
+end
 
 local shared = odh_shared_plugins
 local tab = shared.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/Assets/map-svgrepo-com")
@@ -90,20 +120,13 @@ pcall_fn(initLabel)
 
 local lastStatusText = STR_STATUS_OFF
 
-local function applyStatusLabel()
-	local lbl = statusLabel
-	if lbl then
-		lbl:SetValue(lastStatusText)
-	end
-end
-
 local function setStatus(txt)
-	local prevTxt = lastStatusText
-	if prevTxt ~= txt then
+	if lastStatusText ~= txt then
 		lastStatusText = txt
-		local pc = pcall_fn
-		local app = applyStatusLabel
-		pc(app)
+		local lbl = statusLabel
+		if lbl then
+			callMethod(lbl, LABEL_METHODS, txt)
+		end
 	end
 end
 
@@ -115,6 +138,12 @@ local toggleSmallest = nil
 local toggleBiggest = nil
 local toggleRandom = nil
 
+local function turnOff(toggleObj)
+	if toggleObj then
+		callMethod(toggleObj, TOGGLE_METHODS, false)
+	end
+end
+
 local function onToggleSmallest(enabled)
 	local active = enabled and true or false
 	t1On = active
@@ -125,25 +154,20 @@ local function onToggleSmallest(enabled)
 	if active then
 		s.mode = 1
 		s.enabled = true
-		local pc = pcall_fn
 		syncingToggles = true
 		if t2On then
 			t2On = false
-			local t2 = toggleBiggest
-			if t2 then pc(t2) end
+			turnOff(toggleBiggest)
 		end
 		if t3On then
 			t3On = false
-			local t3 = toggleRandom
-			if t3 then pc(t3) end
+			turnOff(toggleRandom)
 		end
 		syncingToggles = false
 	elseif s.mode == 1 then
 		s.mode = 0
 		s.enabled = false
-		local setSt = setStatus
-		local sOff = STR_STATUS_OFF
-		setSt(sOff)
+		setStatus(STR_STATUS_OFF)
 	end
 end
 
@@ -157,25 +181,20 @@ local function onToggleBiggest(enabled)
 	if active then
 		s.mode = 2
 		s.enabled = true
-		local pc = pcall_fn
 		syncingToggles = true
 		if t1On then
 			t1On = false
-			local t1 = toggleSmallest
-			if t1 then pc(t1) end
+			turnOff(toggleSmallest)
 		end
 		if t3On then
 			t3On = false
-			local t3 = toggleRandom
-			if t3 then pc(t3) end
+			turnOff(toggleRandom)
 		end
 		syncingToggles = false
 	elseif s.mode == 2 then
 		s.mode = 0
 		s.enabled = false
-		local setSt = setStatus
-		local sOff = STR_STATUS_OFF
-		setSt(sOff)
+		setStatus(STR_STATUS_OFF)
 	end
 end
 
@@ -189,34 +208,27 @@ local function onToggleRandom(enabled)
 	if active then
 		s.mode = 3
 		s.enabled = true
-		local pc = pcall_fn
 		syncingToggles = true
 		if t1On then
 			t1On = false
-			local t1 = toggleSmallest
-			if t1 then pc(t1) end
+			turnOff(toggleSmallest)
 		end
 		if t2On then
 			t2On = false
-			local t2 = toggleBiggest
-			if t2 then pc(t2) end
+			turnOff(toggleBiggest)
 		end
 		syncingToggles = false
 	elseif s.mode == 3 then
 		s.mode = 0
 		s.enabled = false
-		local setSt = setStatus
-		local sOff = STR_STATUS_OFF
-		setSt(sOff)
+		setStatus(STR_STATUS_OFF)
 	end
 end
 
 local function onMaxVotesChanged(val)
 	local s = state
-	local toNum = tonumber_fn
-	local flr = math_floor
-	local n = toNum(val) or 0
-	n = flr(n + 0.5)
+	local n = tonumber_fn(val) or 0
+	n = math_floor(n + 0.5)
 	if n < 0 then
 		n = 0
 	elseif n > 100 then
@@ -240,30 +252,23 @@ local function getPads()
 	local pool = padPool
 	local pFolder = pads
 	if not pFolder or not pFolder.Parent then
-		local ws = workspace_ref
-		local sLobby = STR_LOBBY
-		local sVp = STR_VOTEPADS
-		local lobby = ws:FindFirstChild(sLobby)
-		pFolder = lobby and lobby:FindFirstChild(sVp)
+		local lobby = workspace_ref:FindFirstChild(STR_LOBBY)
+		pFolder = lobby and lobby:FindFirstChild(STR_VOTEPADS)
 		pads = pFolder
 		if not pFolder then
 			return pool, 0
 		end
 	end
 	local pNames = PAD_NAMES
-	local sPad = STR_PAD
-	local sVgui = STR_VGUI
-	local sCont = STR_CONTAINER
-	local sMap = STR_MAPNAME
 	local count = 0
 	for i = 1, 3 do
 		local pad = pFolder:FindFirstChild(pNames[i])
 		if pad then
-			local trigger = pad:FindFirstChild(sPad)
-			local vgui = pad:FindFirstChild(sVgui)
-			if trigger and vgui then
-				local cont = vgui:FindFirstChild(sCont)
-				local nameObj = cont and cont:FindFirstChild(sMap)
+			local trigger = pad:FindFirstChild(STR_PAD)
+			local vgui = pad:FindFirstChild(STR_VGUI)
+			if trigger and vgui and trigger:IsA(STR_BASEPART) then
+				local cont = vgui:FindFirstChild(STR_CONTAINER)
+				local nameObj = cont and cont:FindFirstChild(STR_MAPNAME)
 				if nameObj then
 					count = count + 1
 					local entry = pool[count]
@@ -279,8 +284,7 @@ local function getPads()
 end
 
 local function votingOpen()
-	local getP = getPads
-	local list, count = getP()
+	local list, count = getPads()
 	for i = 1, count do
 		if list[i].gui.Enabled then
 			return true
@@ -300,13 +304,8 @@ local function resolveRanks(rawMap)
 	if cachedS then
 		return cachedS, rnkB[rawMap]
 	end
-	local lower = str_lower
-	local gsub = str_gsub
-	local sMatch = str_match
-	local sFind = str_find
-	local sSub = str_sub
-	local low = gsub(lower(rawMap), "-", " ")
-	low = sMatch(low, "^%s*(.-)%s*$") or low
+	local low = str_gsub(str_lower(rawMap), "-", " ")
+	low = str_match(low, "^%s*(.-)%s*$") or low
 	local exactS = rnkS[low]
 	if exactS then
 		local exactB = rnkB[low]
@@ -314,9 +313,9 @@ local function resolveRanks(rawMap)
 		rnkB[rawMap] = exactB
 		return exactS, exactB
 	end
-	local parenPos = sFind(low, " (", 1, true)
-	local clean = parenPos and sSub(low, 1, parenPos - 1) or low
-	clean = sMatch(clean, "^%s*(.-)%s*$") or clean
+	local parenPos = str_find(low, " (", 1, true)
+	local clean = parenPos and str_sub(low, 1, parenPos - 1) or low
+	clean = str_match(clean, "^%s*(.-)%s*$") or clean
 	local bKeys = BASE_KEYS
 	local oLen = orderLen
 	for i = 1, oLen do
@@ -330,8 +329,8 @@ local function resolveRanks(rawMap)
 	end
 	for i = 1, oLen do
 		local bk = bKeys[i]
-		if sFind(clean, bk, 1, true) == 1 then
-			local nxt = sSub(clean, #bk + 1, #bk + 1)
+		if str_find(clean, bk, 1, true) == 1 then
+			local nxt = str_sub(clean, #bk + 1, #bk + 1)
 			if nxt == "" or nxt == " " then
 				local sScore = i + 0.2
 				local bScore = oLen + i - 0.2
@@ -352,7 +351,7 @@ local function resolveRanks(rawMap)
 		end
 	end
 	for i = 1, oLen do
-		if sFind(clean, bKeys[i], 1, true) then
+		if str_find(clean, bKeys[i], 1, true) then
 			local sScore = oLen + i
 			local bScore = i
 			rnkS[rawMap] = sScore
@@ -366,14 +365,12 @@ local function resolveRanks(rawMap)
 end
 
 local function pickSmallest()
-	local getP = getPads
-	local getR = resolveRanks
 	local best = nil
 	local bestRank = math_huge
-	local list, count = getP()
+	local list, count = getPads()
 	for i = 1, count do
 		local p = list[i]
-		local r = getR(p.map)
+		local r = resolveRanks(p.map)
 		if r < bestRank then
 			best = p
 			bestRank = r
@@ -383,14 +380,12 @@ local function pickSmallest()
 end
 
 local function pickBiggest()
-	local getP = getPads
-	local getR = resolveRanks
 	local best = nil
 	local bestRank = -1
-	local list, count = getP()
+	local list, count = getPads()
 	for i = 1, count do
 		local p = list[i]
-		local _, rBig = getR(p.map)
+		local _, rBig = resolveRanks(p.map)
 		if rBig > bestRank then
 			best = p
 			bestRank = rBig
@@ -400,53 +395,46 @@ local function pickBiggest()
 end
 
 local function pickRandom()
-	local getP = getPads
-	local rand = math_random
-	local list, count = getP()
+	local list, count = getPads()
 	if count > 0 then
-		return list[rand(1, count)]
+		return list[math_random(1, count)]
 	end
 	return nil
 end
 
 local function pickTargetPad(mode)
 	if mode == 1 then
-		local pSmall = pickSmallest
-		return pSmall()
+		return pickSmallest()
 	elseif mode == 2 then
-		local pBig = pickBiggest
-		return pBig()
+		return pickBiggest()
 	elseif mode == 3 then
-		local pRand = pickRandom
-		return pRand()
+		return pickRandom()
 	end
 	return nil
 end
 
 local function insidePad(trigger, pos)
-	local abs = math_abs
+	if not trigger or not trigger.Parent then
+		return false
+	end
 	local lp = trigger.CFrame:PointToObjectSpace(pos)
 	local h = trigger.Size * 0.5
-	return abs(lp.X) <= h.X and abs(lp.Y) <= h.Y and abs(lp.Z) <= h.Z
+	return math_abs(lp.X) <= h.X and math_abs(lp.Y) <= h.Y and math_abs(lp.Z) <= h.Z
+end
+
+local function humAlive(hum)
+	if not hum or not hum.Parent or hum.Health <= 0 then
+		return false
+	end
+	local ok, st = pcall_fn(hum.GetState, hum)
+	return ok and st ~= HUM_DEAD
 end
 
 local function workerThread()
 	local s = state
-	local plrs = Players
 	local plr = player
 	local wait_fn = task_wait
-	local vOpen = votingOpen
-	local pickPad = pickTargetPad
-	local inPad = insidePad
-	local setSt = setStatus
-	local cfNew = CFrame_new
-	local vZero = Vector3_zero
 	local offset = Vector3_new(0, 1, 0)
-	local sWaitVote = STR_WAIT_VOTE
-	local sNoPads = STR_NO_PADS
-	local sVotePref = STR_VOTING_PREFIX
-	local sHrp = STR_HRP
-	local sHum = STR_HUM
 
 	local flowState = 0
 	local activeMode = 0
@@ -458,14 +446,16 @@ local function workerThread()
 	local activeChar = nil
 	local activeHrp = nil
 	local activeHum = nil
+	local seenChar = nil
+	local seenTime = 0
 
 	while s.alive do
 		if not s.enabled or s.mode == 0 then
 			flowState = 0
 			wait_fn(0.25)
 		elseif flowState == 0 then
-			if not vOpen() then
-				setSt(sWaitVote)
+			if not votingOpen() then
+				setStatus(STR_WAIT_VOTE)
 				wait_fn(0.5)
 			else
 				votesCast = 0
@@ -473,26 +463,26 @@ local function workerThread()
 			end
 		elseif flowState == 1 then
 			wait_fn(0.5)
-			if not (s.enabled and vOpen()) then
+			if not (s.enabled and votingOpen()) then
 				flowState = 0
 			else
 				local curMode = s.mode
-				local best = pickPad(curMode)
+				local best = pickTargetPad(curMode)
 				if best then
 					activeMode = curMode
 					bestTrigger = best.trigger
 					bestGui = best.gui
-					bestStatusText = sVotePref .. best.map
+					bestStatusText = STR_VOTING_PREFIX .. best.map
 					lastChar = nil
 					flowState = 2
 				else
-					setSt(sNoPads)
+					setStatus(STR_NO_PADS)
 					wait_fn(1)
 					flowState = 0
 				end
 			end
 		elseif flowState == 2 then
-			if not bestGui or not bestGui.Parent or not bestGui.Enabled or not vOpen() then
+			if not bestGui or not bestGui.Parent or not bestGui.Enabled or not bestTrigger or not bestTrigger.Parent or not votingOpen() then
 				flowState = 0
 			elseif s.mode ~= activeMode then
 				flowState = 1
@@ -501,19 +491,23 @@ local function workerThread()
 				if maxV > 0 and votesCast >= maxV then
 					flowState = 4
 				else
-					setSt(bestStatusText)
+					setStatus(bestStatusText)
 					if not plr then
-						plr = plrs.LocalPlayer
+						plr = Players.LocalPlayer
 					end
 					local char = plr and plr.Character
-					if char and char ~= lastChar then
-						local hrp = char:FindFirstChild(sHrp)
-						local hum = char:FindFirstChildOfClass(sHum)
-						if hrp and hum and hum.Health > 0 then
-							if not inPad(bestTrigger, hrp.Position) then
+					if char ~= seenChar then
+						seenChar = char
+						seenTime = os_clock()
+					end
+					if char and char ~= lastChar and char.Parent and os_clock() - seenTime >= SPAWN_SETTLE then
+						local hrp = char:FindFirstChild(STR_HRP)
+						local hum = char:FindFirstChildOfClass(STR_HUM)
+						if hrp and humAlive(hum) and hum.RootPart then
+							if not insidePad(bestTrigger, hrp.Position) then
 								local target = bestTrigger.Position + offset
-								hrp.CFrame = cfNew(target) * hrp.CFrame.Rotation
-								hrp.AssemblyLinearVelocity = vZero
+								hrp.CFrame = CFrame_new(target) * hrp.CFrame.Rotation
+								hrp.AssemblyLinearVelocity = Vector3_zero
 							end
 							activeChar = char
 							activeHrp = hrp
@@ -529,13 +523,18 @@ local function workerThread()
 			end
 		elseif flowState == 3 then
 			wait_fn(0.25)
-			if not (s.alive and s.enabled and bestGui and bestGui.Parent and bestGui.Enabled and vOpen()) then
+			if not (s.alive and s.enabled and bestGui and bestGui.Parent and bestGui.Enabled and votingOpen()) then
 				flowState = 0
+			elseif s.mode ~= activeMode then
+				flowState = 1
 			else
-				if activeChar.Parent and activeHrp.Parent and activeHum.Health > 0 and inPad(bestTrigger, activeHrp.Position) then
+				if activeChar and activeChar.Parent and activeHrp and activeHrp.Parent and humAlive(activeHum) and insidePad(bestTrigger, activeHrp.Position) then
 					lastChar = activeChar
 					votesCast = votesCast + 1
 					activeHum.Health = 0
+					activeChar = nil
+					activeHrp = nil
+					activeHum = nil
 					local maxV = s.maxVotes
 					if maxV > 0 and votesCast >= maxV then
 						flowState = 4
@@ -547,7 +546,7 @@ local function workerThread()
 				end
 			end
 		elseif flowState == 4 then
-			if not bestGui or not bestGui.Parent or not bestGui.Enabled or not vOpen() then
+			if not bestGui or not bestGui.Parent or not bestGui.Enabled or not votingOpen() then
 				flowState = 0
 			elseif s.mode ~= activeMode then
 				flowState = 1
