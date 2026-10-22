@@ -38,7 +38,7 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "hi"
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
-gui.DisplayOrder = 9999
+gui.DisplayOrder = -9999
 gui.Enabled = false
 gui.Parent = PlayerGui
 
