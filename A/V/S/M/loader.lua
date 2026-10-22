@@ -1,19 +1,24 @@
+local a = os.clock()
+
+-- // variables \\
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local a = os.clock()
 
 local DEAD = Enum.HumanoidStateType.Dead
 local RUNNING = Enum.HumanoidStateType.Running
-local OFFSET = Vector3.new(0, 1, 0)
-local SPAWN_SETTLE = 0.15
-local PAD_SETTLE = 0.12
-local RESET_COOLDOWN = 0.25
+
+-- // localization \\
+
+local twait = task.wait
+local vnew = Vector3.new
+local firetouch = firetouchinterest
+local rng = Random.new() or 0
+
+-- // rest of variables \\
+local OFFSET = vnew(0, 1, 0)
 local PAD_NAMES = { "VotePad1", "VotePad2", "VotePad3" }
 local LABEL_SET = { "SetValue", "SetText", "Set" }
 local TOGGLE_SET = { "SetValue", "Set", "SetState" }
-
-local firetouch = firetouchinterest
-local rng = Random.new()
 
 local mode = 0
 local maxVotes = 0
@@ -37,6 +42,7 @@ local ORDER = {
 }
 local N = #ORDER
 
+-- // helpers stuff \\
 local function normalize(s)
 	s = string.lower(s):gsub("-", " "):gsub("%s+", " ")
 	return s:match("^%s*(.-)%s*$")
@@ -114,17 +120,11 @@ local function trySet(obj, methods, value)
 	end
 end
 
-local tab = odh_shared_plugins.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/Assets/map-svgrepo-com")
-local section = tab:AddSection("Auto Vote", "Made by Gato 😎")
-local statusLabel = section:AddLabel("Off", true)
+-- // main shit \\
+local odh = odh_shared_plugins
 
-local lastStatus = "Off"
-local function setStatus(text)
-	if text ~= lastStatus then
-		lastStatus = text
-		trySet(statusLabel, LABEL_SET, text)
-	end
-end
+local tab = odh.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/Assets/map-svgrepo-com")
+local section = tab:AddSection("Auto Vote", "Made by Gato 😎")
 
 local toggles = {}
 local syncing = false
@@ -144,7 +144,6 @@ local function onToggle(m)
 			syncing = false
 		elseif mode == m then
 			mode = 0
-			setStatus("Off")
 		end
 	end
 end
@@ -152,8 +151,8 @@ end
 toggles[1] = section:AddToggle("Auto Vote: Smallest Map", onToggle(1))
 toggles[2] = section:AddToggle("Auto Vote: Biggest Map", onToggle(2))
 toggles[3] = section:AddToggle("Auto Vote: Random Map", onToggle(3))
-section:AddSlider("Max Votes (0 = Infinite)", 0, 100, 0, function(v)
-	maxVotes = math.clamp(math.floor((tonumber(v) or 0) + 0.5), 0, 100)
+section:AddSlider("Max Votes (0 = Infinite)", 0, 100, 0, function(GAY)
+	maxVotes = math.clamp(math.floor((tonumber(GAY) or 0) + 0.5), 0, 100)
 end)
 
 local function getOpenPads()
@@ -197,7 +196,7 @@ local function inside(trigger, pos)
 	return math.abs(lp.X) <= h.X and math.abs(lp.Y) <= h.Y and math.abs(lp.Z) <= h.Z
 end
 
-local function touch(hrp, trigger)
+local function touch_muheheh(hrp, trigger)
 	if firetouch then
 		firetouch(hrp, trigger, 0)
 		firetouch(hrp, trigger, 1)
@@ -209,6 +208,11 @@ local readyChar, readyTime = player.Character, 0
 local target, targetMode = nil, 0
 
 local function step()
+    local mode = mode
+    local target = target
+    local targetMode = targetMode
+    local twait = twait
+    
 	if mode == 0 then
 		return 0.1
 	end
@@ -216,7 +220,6 @@ local function step()
 	local open = getOpenPads()
 	if #open == 0 then
 		wasOpen, target = false, nil
-		setStatus("Waiting for vote")
 		return 0.05
 	end
 	if not wasOpen then
@@ -228,20 +231,20 @@ local function step()
 	end
 
 	if maxVotes > 0 and votes >= maxVotes then
-		setStatus("Max votes reached")
 		return 0.1
 	end
-	setStatus("Voting: " .. target.map)
+	
 
 	local char = player.Character
 	if not char then
 		return 0.05
 	end
+	
 	local now = os.clock()
 
 	if char == votedChar then
 		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum and now - resetTime >= RESET_COOLDOWN then
+		if hum and now - resetTime >= 0.15 then
 			resetTime = now
 			hum:ChangeState(RUNNING)
 			hum:ChangeState(DEAD)
@@ -253,8 +256,8 @@ local function step()
 	if char ~= readyChar then
 		readyChar, readyTime = char, now
 	end
-	if now - readyTime < SPAWN_SETTLE then
-		return readyTime + SPAWN_SETTLE - now
+	if now - readyTime < 0.15 then
+		return readyTime + 0.15 - now
 	end
 
 	local hum = char:FindFirstChildOfClass("Humanoid")
@@ -268,15 +271,15 @@ local function step()
 		hrp.CFrame = CFrame.new(trigger.Position + OFFSET) * hrp.CFrame.Rotation
 		hrp.AssemblyLinearVelocity = Vector3.zero
 	end
-	touch(hrp, trigger)
+	touch_muheheh(hrp, trigger)
 
-	task.wait(PAD_SETTLE)
+	twait(0.12)
 
 	if mode ~= targetMode or not target.gui.Enabled or not trigger.Parent then
 		return 0
 	end
 	if hum.Health > 0 and inside(trigger, hrp.Position) then
-		touch(hrp, trigger)
+		touch_muheheh(hrp, trigger)
 		votedChar = char
 		votes += 1
 		resetTime = os.clock()
@@ -286,11 +289,13 @@ local function step()
 	return 0
 end
 
-shared.Notify("Successfully Loaded in " .. (os.clock() - a) .. "s!", 1)
+odh.Notify("AVSM Successfully Loaded in " .. (os.clock() - a) .. "ms! :D", 1)
 
+-- // loop \\
 task.spawn(function()
 	while true do
+	    --print("[avsm]: pool active ts means it works. :)")
 		local ok, delay = pcall(step)
-		task.wait(ok and delay or 0.5)
+		twait(ok and delay or 0.5)
 	end
 end)
