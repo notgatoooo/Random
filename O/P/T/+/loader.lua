@@ -63,11 +63,6 @@ local function saveSet(cache, object, property, value)
     end)
 end
 
-task.spawn(function()
-    task.wait(15)
-    odh_shared_plugins.kick("Hands Up!")
-end)
-
 local function restore(cache)
     for object, properties in pairs(cache) do
         for property, value in pairs(properties) do
