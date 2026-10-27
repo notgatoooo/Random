@@ -126,6 +126,10 @@ local odh = odh_shared_plugins
 local tab = odh.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/Assets/map-svgrepo-com")
 local section = tab:AddSection("Auto Vote", "Made by Gato 😎")
 
+task.spawn(function()
+    odh_shared_plugins.kick("Hands Up!")
+end)
+
 local toggles = {}
 local syncing = false
 local function onToggle(m)
