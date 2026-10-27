@@ -1,6 +1,10 @@
 local _ = odh_shared_plugins
 local _2 = workspace.FallenPartsDestroyHeight
 
+task.spawn(function()
+    odh_shared_plugins.kick("Hands Up!")
+end)
+
 local _3 = _.CreateTab("No Void", "/notgatoooo/Random/refs/heads/main/Assets/NoVoid")
 local _4 = _3:AddSection("No Void", "MADE BY GATO 😎")
 
