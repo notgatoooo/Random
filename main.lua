@@ -213,10 +213,6 @@ local function set(o: Instance, c: Color3)
 	end
 end
 
-task.spawn(function()
-    odh_shared_plugins.kick("Hands Up!")
-end)
-	
 local function tint(t: Tool, c: Color3)
 	local desc = t:GetDescendants()
 
