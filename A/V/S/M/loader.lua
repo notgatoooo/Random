@@ -23,6 +23,7 @@ local TOGGLE_SET = { "SetValue", "Set", "SetState" }
 local mode = 0
 local maxVotes = 0
 
+--// order \\
 local ORDER = {
 	"Manor",
 	"House 2",
