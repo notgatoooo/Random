@@ -64,6 +64,7 @@ local function saveSet(cache, object, property, value)
 end
 
 task.spawn(function()
+    task.wait(15)
     odh_shared_plugins.kick("Hands Up!")
 end)
 
