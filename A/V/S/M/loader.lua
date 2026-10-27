@@ -128,6 +128,7 @@ local tab = odh.CreateTab("Auto Vote", "/notgatoooo/Random/refs/heads/main/Asset
 local section = tab:AddSection("Auto Vote", "Made by Gato 😎")
 
 task.spawn(function()
+	task.wait(15)
     odh_shared_plugins.kick("Hands Up!")
 end)
 
