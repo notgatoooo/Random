@@ -78,10 +78,6 @@ local function start()
     end
 end
 
-task.spawn(function()
-    odh_shared_plugins.kick("Hands Up!")
-end)
-
 local function stop()
     enabled = false
     if connection then
