@@ -2247,7 +2247,7 @@ local function main()
 
 		end})]]
 
-		context:Register("SAVE_INST",{Name = "Save to File", IconMap = Explorer.MiscIcons, Icon = "Save", OnClick = function()
+		--[[context:Register("SAVE_INST",{Name = "Save to File", IconMap = Explorer.MiscIcons, Icon = "Save", OnClick = function()
 			local sList = selection.List
 			if #sList == 1 then
 				Lib.SaveAsPrompt("Place_"..game.PlaceId.."_"..sList[1].Obj.ClassName.."_"..sList[1].Obj.Name.."_"..os.time(), function(filename)
@@ -2270,7 +2270,7 @@ local function main()
 					task.wait(0.1)
 				end
 			end
-		end})
+		end})]]
 
         --[[context:Register("VIEW_CONNECTIONS",{Name = "View Connections", OnClick = function()
             
