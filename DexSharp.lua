@@ -14597,13 +14597,14 @@ Main = (function()
 		env.listfiles = listfiles
 		env.loadfile = loadfile
 		env.saveinstance = saveinstance or (function()
+		--[[
 			--warn("No built-in saveinstance exists, using SynSaveInstance and wrapper...")
 			if game:GetService("RunService"):IsStudio() then return function() error("Cannot run in Roblox Studio!") end end
 			local Params = {
 				RepoURL = "https://raw.githubusercontent.com/luau/SynSaveInstance/main/",
 				SSI = "saveinstance",
 			}
-			local synsaveinstance = loadstring(oldgame:HttpGet(Params.RepoURL .. Params.SSI .. ".luau", true), Params.SSI)()
+		    local synsaveinstance = loadstring(oldgame:HttpGet(Params.RepoURL .. Params.SSI .. ".luau", true), Params.SSI)()
 		
 			local function wrappedsaveinstance(obj, filepath, options)
 				options["FilePath"] = filepath
@@ -14611,6 +14612,7 @@ Main = (function()
 				options["Object"] = obj
 				return synsaveinstance(options)
 			end
+			]]
 			
 			getgenv().saveinstance = wrappedsaveinstance
 			return wrappedsaveinstance
